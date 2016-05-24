@@ -6,7 +6,11 @@ This needs Ruby and stuff. If you don't have a Ruby environment (with bundle and
 
     bundle install
 
-to install the dependencies. Then run it with
+to install the dependencies.
+
+You probably need to go to the `quantitative_model` directory and run `make` to compile the C program.
+
+Then run it with
 
     bundle exec ruby server.rb 8080
 
