@@ -15,8 +15,6 @@
 
 using namespace std;
 
-typedef map<string, Distribution> Table2;
-
 #define WARN_ABOUT_MISSING_KEYS 0
 
 class Table {
@@ -24,9 +22,6 @@ private:
     map<string, Distribution> table;
 
 public:
-//    const Distribution& operator [](string b) const {
-//        return table[b];
-//    }
     Distribution& operator [](string b) {
         if (WARN_ABOUT_MISSING_KEYS) {
             printf("warning: '%s' is not in the table.\n", b.c_str());
