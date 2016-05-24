@@ -36,7 +36,7 @@ function<double(double)> lognorm_pdf(double p_m, double p_s)
  */
 int bucket_index(double x)
 {
-    // return (int) (log(x) / log(STEP) - 0.5) + EXP_OFFSET; // I believe this is more mathematically accurate but Excel does in the other way
+    // return (int) (log(x) / log(STEP) - 0.5) + EXP_OFFSET; // I believe this is more mathematically accurate but Excel does it the other way
     return (int) (log(x) / log(STEP)) + EXP_OFFSET;
 }
 
@@ -236,35 +236,51 @@ Distribution Distribution::reciprocal() const
     }
 }
 
-double Distribution::mean() const
+/*
+ * Not const because caches calculated mean.
+ */
+double Distribution::mean()
 {
     check_empty();
 
+    if (is_mean_cached) {
+        return cached_mean;
+    }
+
+    is_mean_cached = true;
+    cached_mean = 0;
     if (this->type == Type::lognorm) {
-        return this->p_m;
+        /* see https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
+        double sigma = log(10) * p_s;
+        cached_mean = p_m * exp(0.5 * pow(sigma, 2));
+    } else {
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            cached_mean += bucket_prob(i) * get(i) * get_delta(i);
+        }
     }
-    // TODO: implement correctly for lognorm
-    double mu = 0;
-    for (int i = 0; i < NUM_BUCKETS; i++) {
-        mu += bucket_prob(i) * get(i) * get_delta(i);
-    }
-    return mu;
+
+    return cached_mean;
 }
 
-double Distribution::variance(double mean1) const
+double Distribution::variance()
 {
     check_empty();
 
-    // TODO: implement correctly for lognorm
-    if (this->type == Type::lognorm) {
-        return this->p_s;
+    if (!is_mean_cached) {
+        mean();
     }
 
-    double sigma2 = 0;
-    for (int i = 0; i < NUM_BUCKETS; i++) {
-        sigma2 += pow(bucket_prob(i), 2) * get(i) * get_delta(i);
+    if (this->type == Type::lognorm) {
+        /* seehttp://www.amazon.com/Products-MPS4-Master-Plunger-Shorty/dp/B005UJLVGI%3Fpsc%3D1%26SubscriptionId%3DAKIAIH6BKLR7M6KSMDGQ%26tag%3Daboutcom02plumbing-20%26linkCode%3Dxm2%26camp%3D2025%26creative%3D165953%26creativeASIN%3DB005UJLVGI https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
+        double sigma = log(10) * p_s;
+        return pow(cached_mean, 2) * (exp(pow(sigma, 2)) - 1);
+    } else {
+        double sigma2 = 0;
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            sigma2 += pow(bucket_prob(i), 2) * get(i) * get_delta(i);
+        }
+        return sigma2 - pow(cached_mean, 2);
     }
-    return sigma2 - pow(mean1, 2);
 }
 
 double Distribution::variance() const {

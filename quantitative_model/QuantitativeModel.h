@@ -27,6 +27,10 @@
 enum class Type { empty, buckets, lognorm };
 
 class Distribution {
+private:
+    double cached_mean = 0;
+    bool is_mean_cached = false;
+    
 public:
     std::function<double(double)> pdf;
     std::vector<double> buckets;
@@ -35,8 +39,8 @@ public:
     Type type;
 
     /* params for log-normal */
-    double p_m;
-    double p_s;
+    double p_m; /* exp(mu) */
+    double p_s; /* base-10 sigma */
 
     Distribution();
     Distribution(Type type);
@@ -49,9 +53,8 @@ public:
     Distribution operator*(const Distribution& other) const;
     Distribution operator*(double scalar) const;
     Distribution reciprocal() const;
-    double mean() const;
-    double variance(double mean1) const;
-    double variance() const;
+    double mean();
+    double variance();
     double integrand(const Distribution& measurement, int index, bool ev) const;
     double integral(const  Distribution& measurement, bool ev) const;
     double posterior(const Distribution& measurement) const;

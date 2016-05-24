@@ -24,12 +24,10 @@ private:
     map<string, Distribution> table;
 
 public:
-//    const Distribution& operator [](string b) const {
-//        return table[b];
-//    }
-    Distribution& operator [](string b) {
+    Distribution& operator[](string b) {
         if (WARN_ABOUT_MISSING_KEYS) {
-            printf("warning: '%s' is not in the table.\n", b.c_str());
+            // TODO: actually check if key is missing
+            cout << "Warning: '" << b << "' is not in the table." << endl;
         }
 
         return table[b];
@@ -39,7 +37,7 @@ public:
         for(auto pair: table) {
             string name = pair.first;
             Distribution distribution = pair.second;
-            printf("%s,%f,%f\n", name.c_str(), distribution.mean(), distribution.variance());
+            cout << name << ", " << distribution.mean() << ", " << distribution.variance());
         }
     }
 };
@@ -68,7 +66,7 @@ Table read_input(string filename)
     string key, comments, low_CI, high_CI;
 
     if (!file.good()) {
-        printf("I wasn't able to open the input file (%s), so I'm exiting.\n", filename.c_str());
+        cerr << "I wasn't able to open the input file (" << filename << "), so I'm exiting." << endl;
         exit(1);
     }
 
@@ -76,10 +74,8 @@ Table read_input(string filename)
         getline(file, key, ',');
         getline(file, low_CI, ',');
         getline(file, high_CI);
-//        getline(file, comments);
         if (key.length()) {
             table[key] = CI(stof(low_CI), stof(high_CI));
-//            printf("I just set '%s'\n", key.c_str());
         }
     }
     return table;
@@ -139,8 +135,8 @@ int main(int argc, char *argv[])
 
     globals(table);
     // ev_far_future(table);
-    printf("thl_posterior_direct,%f\n", thl_posterior_direct(table, Distribution(1, 0.75))); // 194.8
-    printf("cage_free_posterior_direct,%f\n", cage_free_posterior_direct(table, Distribution(1, 0.75))); // 2531
+    cout << "thl_posterior_direct," << thl_posterior_direct(table, Distribution(1, 0.75)) << endl; // 194.8
+    cout << "cage_free_posterior_direct," << cage_free_posterior_direct(table, Distribution(1, 0.75)) << endl; // 2531
     table.print_nicely();
     return 0;
 }
