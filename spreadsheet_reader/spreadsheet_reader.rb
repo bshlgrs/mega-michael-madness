@@ -28,22 +28,23 @@ class SpreadsheetParser
             value: cell.value,
             color: cell.fill_color,
             bolded: !!cell.is_bolded,
-            formula: cell.formula && cell.formula.expression.length > 0 && cell.formula.expression
+            formula: cell.formula && cell.formula.expression.length > 0 && cell.formula.expression,
+            blah: cell.formula
           }
         end
       end
 
       if prev_row_idx && row_idx - prev_row_idx != 1
-        entities << current_entity
+        entities << current_entity if current_entity != []
         current_entity = [row_elems]
       else
-        current_entity << row_elems
+        current_entity << row_elems if row_elems != []
       end
 
-      prev_row_idx = row_idx
+      prev_row_idx = row_idx if row_elems.length > 0
     end
 
-    entities << current_entity
+    entities << current_entity if current_entity != []
 
     {
       name: sheet.sheet_name,
@@ -52,6 +53,7 @@ class SpreadsheetParser
   end
 
   def process_entity(e)
+    p e
     if e.length == 1 && e.first.length == 1
       if e[0][0][:bolded]
         {type: "h3", value: e[0][0][:value]}
@@ -68,7 +70,7 @@ class SpreadsheetParser
       else
         {
           type: "table",
-          table: process_table(e.drop(1))
+          table: process_table(e)
         }
       end
     end
@@ -78,7 +80,7 @@ class SpreadsheetParser
     height = e.length
     width = e.map(&:length).max
 
-    e.map.with_index do |row, row_index|
+    res = e.map.with_index do |row, row_index|
       row.map do |cell|
         if cell.nil?
           nil
@@ -100,4 +102,7 @@ class SpreadsheetParser
   end
 end
 
-puts SpreadsheetParser.new.parse_workbook("example_workbook.xlsx").to_json
+if __FILE__ == $0
+  puts SpreadsheetParser.new.parse_workbook("example_workbook.xlsx").to_json
+end
+
