@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
     Table table = read_input(argv[1]);
 
     globals(table);
+    // ev_far_future(table);
     printf("thl_posterior_direct,%f\n", thl_posterior_direct(table, Distribution(1, 0.75))); // 194.8
     printf("cage_free_posterior_direct,%f\n", cage_free_posterior_direct(table, Distribution(1, 0.75))); // 2531
     table.print_nicely();

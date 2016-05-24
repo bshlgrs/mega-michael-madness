@@ -1,6 +1,6 @@
 require 'sinatra'
 require "sinatra/json"
-require_relative 'spreadsheet_reader/spreadsheet_reader'
+# require_relative 'spreadsheet_reader/spreadsheet_reader'
 $TIME_BETWEEN_DOCKER_RESTARTS = 30
 
 set :server, 'thin'
