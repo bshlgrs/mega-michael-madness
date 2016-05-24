@@ -1,10 +1,13 @@
 ## THL stuff
 
-this is a paragraph
+Let's sort out our opinions on how bad factory farming is, and how much we care about it.
 
 @factory-farmed animal wellbeing,6
 @factory-farmed animal sentience adjustment,0.3
 @utility per cage removed,0.3
+
+What about the far future?
+
 @P(stay on earth),0.2
 @P(we reduce WAS on balance),0.7
 @P(fill universe with biology),0.4
@@ -17,12 +20,17 @@ this is a paragraph
 @P(ems),0.3
 @P(paperclip),0.649
 @P(dolorium),0.001
+
+Let's talk about cage free!
+
 @THL years factory farming prevented per $1000,700,13000
 @cage-free total expenditures ($M),2,3
 @years until cage-free would have happened anyway,5,10
 @millions of cages prevented,100,150
 @proportion of change attributable to campaigns,0.7,1
 @cage-free years per cage prevented,1,1
+
+Results:
 
 $thl_posterior_direct
 $cage_free_posterior_direct
