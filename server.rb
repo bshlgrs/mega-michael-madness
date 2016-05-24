@@ -17,11 +17,11 @@ get '/data.json' do
 
   inputs = handle_data_lines(template.split("\n").select { |x| x[0] == "@" }.map { |x| x[1..-1]})
 
-  {
+  json({
     outputs: get_default_outputs,
     template: template,
     inputs: inputs
-  }.to_json
+  })
 end
 
 post '/eval' do
