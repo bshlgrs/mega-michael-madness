@@ -40,7 +40,7 @@ post '/eval' do
   File.write("input#{magic_number}", input_to_program.join("\n"))
 
   res = `./quantitative_model/a.out input#{magic_number}`
-
+  `rm "input#{magic_number}"`
   handle_data_lines(res.split("\n")).to_json
 end
 
