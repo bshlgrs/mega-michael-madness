@@ -15,8 +15,6 @@
 
 using namespace std;
 
-typedef map<string, Distribution> Table2;
-
 #define WARN_ABOUT_MISSING_KEYS 0
 
 class Table {
@@ -24,7 +22,8 @@ private:
     map<string, Distribution> table;
 
 public:
-    Distribution& operator[](string b) {
+    Distribution& operator[](string b) 
+    {
         if (WARN_ABOUT_MISSING_KEYS) {
             // TODO: actually check if key is missing
             cout << "Warning: '" << b << "' is not in the table." << endl;
@@ -33,7 +32,8 @@ public:
         return table[b];
     }
 
-    void print_nicely() {
+    void print_nicely() 
+    {
         for(auto pair: table) {
             string name = pair.first;
             Distribution distribution = pair.second;
