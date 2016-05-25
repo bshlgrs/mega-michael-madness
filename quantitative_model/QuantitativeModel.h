@@ -24,7 +24,7 @@
 #define EXP_OFFSET 100
 #define NORMAL_90TH_PERCENTILE 1.2815515655
 
-enum class Type { empty, buckets, lognorm };
+enum class Type { empty, buckets, singleton, lognorm };
 
 class Distribution {
 private:
@@ -42,6 +42,9 @@ public:
     double p_m; /* exp(mu) */
     double p_s; /* base-10 sigma */
 
+    /* params for singleton */
+    double singleton_val;
+
     Distribution();
     Distribution(Type type);
     Distribution(double p_m, double p_s);
@@ -55,7 +58,7 @@ public:
     Distribution reciprocal() const;
     double mean();
     double variance();
-    double integrand(const Distribution& measurement, int index, bool ev) const;
-    double integral(const  Distribution& measurement, bool ev) const;
-    double posterior(const Distribution& measurement) const;
+    double integrand(Distribution& measurement, int index, bool ev) const;
+    double integral(Distribution& measurement, bool ev) const;
+    double posterior(Distribution& measurement) const;
 };

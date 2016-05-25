@@ -1,5 +1,10 @@
 ## THL stuff
 
+Log-normal prior parameters
+
+@log-normal prior mu,1
+@log-normal prior sigma,0.75
+
 Let's sort out our opinions on how bad factory farming is, and how much we care about it.
 
 @factory-farmed animal wellbeing,6

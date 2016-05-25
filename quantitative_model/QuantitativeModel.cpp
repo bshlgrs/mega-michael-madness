@@ -34,15 +34,16 @@ public:
 
     void print_nicely() 
     {
-        for(auto pair: table) {
+        for (auto pair: table) {
             string name = pair.first;
             Distribution distribution = pair.second;
-            cout << name << ", " << distribution.mean() << ", " << distribution.variance());
+            cout << name << ", " << distribution.mean() << ", "
+                 << distribution.variance() << endl;
         }
     }
 };
 
-double Distribution::posterior(const Distribution& measurement) const
+double Distribution::posterior(Distribution& measurement) const
 {
     double c = integral(measurement, false);
     return integral(measurement, true) / c;
@@ -81,16 +82,15 @@ Table read_input(string filename)
     return table;
 }
 
-void globals(Table& table)
+void set_globals(Table& table)
 {
    table["utility per factory-farmed animal"] =
        table["factory-farmed animal wellbeing"]
        * table["factory-farmed animal sentience adjustment"];
-
 }
 
 // TODO: not currently called
-void ev_far_future(Table& table)
+void set_ev_far_future(Table& table)
 {
     table["P(humans exist)"] = table["P(fill universe with biology)"];
     table["P(hedonium exists)"] =
@@ -132,11 +132,10 @@ int main(int argc, char *argv[])
 {
     // This will obviously break if you're not on Unix.
     Table table = read_input(argv[1]);
+    Distribution prior(table["log-normal prior mu"].p_m, table["log-normal prior sigma"].p_m);
 
-    globals(table);
-    // ev_far_future(table);
-    cout << "thl_posterior_direct," << thl_posterior_direct(table, Distribution(1, 0.75)) << endl; // 194.8
-    cout << "cage_free_posterior_direct," << cage_free_posterior_direct(table, Distribution(1, 0.75)) << endl; // 2531
-    table.print_nicely();
+    set_globals(table);
+    cout << "thl_posterior_direct," << thl_posterior_direct(table, prior) << endl; // 194.8
+    cout << "cage_free_posterior_direct," << cage_free_posterior_direct(table, prior) << endl; // 2531
     return 0;
 }

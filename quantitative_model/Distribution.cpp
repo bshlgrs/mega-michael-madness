@@ -16,16 +16,16 @@ using namespace std;
 
 function<double(double)> lomax_pdf(double x_m, double alpha)
 {
-    return [x_m, alpha](double x){
+    return ([x_m, alpha](double x) -> double {
         return alpha / x_m / pow(1 + x / x_m, alpha + 1);
-    };
+        });
 }
 
 function<double(double)> lognorm_pdf(double p_m, double p_s)
 {
     double mu = log(p_m);
     double s = log(10) * p_s;
-    return [mu, s](double x){
+    return [mu, s](double x) -> double {
         return 1 / (x * s * sqrt(2 * M_PI)) *
             exp(-0.5 * pow((log(x) - mu) / s, 2));
     };
@@ -140,9 +140,8 @@ double Distribution::operator[](int index) const
 
 double Distribution::get(int index) const
 {
-    if (type == Type::empty) {
-        throw "Cannot use empty Distribution. Did you try to extract a non-existent value?";
-    } else if (type == Type::lognorm) {
+    check_empty();
+    if (type == Type::lognorm) {
         return pdf(bucket_prob(index));
     } else {
         return buckets[index];
@@ -283,11 +282,7 @@ double Distribution::variance()
     }
 }
 
-double Distribution::variance() const {
-    return variance(this->mean());
-}
-
-double Distribution::integrand(const Distribution& measurement, int index, bool ev) const
+double Distribution::integrand(Distribution& measurement, int index, bool ev) const
 {
     check_empty();
     double u = bucket_min_prob(index);
@@ -297,7 +292,7 @@ double Distribution::integrand(const Distribution& measurement, int index, bool 
         /* approximate `measurement` with log-normal dist */
         // TODO: just do this directly numerically
         double mean1 = measurement.mean();
-        double var = measurement.variance(mean1);
+        double var = measurement.variance();
         double mu = log(mean1 / sqrt(1 + var / pow(mean1, 2)));
         double sigma = sqrt(log(1 + var / pow(mean1, 2)));
         update = lognorm_pdf(u, sigma / log(10))(exp(mu));
@@ -312,7 +307,7 @@ double Distribution::integrand(const Distribution& measurement, int index, bool 
     return res;
 }
 
-double Distribution::integral(const Distribution& measurement, bool ev) const
+double Distribution::integral(Distribution& measurement, bool ev) const
 {
     check_empty();
     double total = 0;
