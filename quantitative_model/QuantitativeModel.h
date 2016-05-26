@@ -24,7 +24,7 @@
 #define EXP_OFFSET 100
 #define NORMAL_90TH_PERCENTILE 1.2815515655
 
-enum class Type { empty, buckets, singleton, lognorm };
+enum class Type { buckets, lognorm };
 
 class Distribution {
 private:
@@ -51,14 +51,17 @@ public:
     Distribution(std::function<double(double)> pdf);
     double operator[](int index) const;
     double get(int index) const;
-    void check_empty() const;
+    Distribution to_lognorm();
     Distribution operator+(const Distribution& other) const;
+    Distribution operator-(Distribution& other);
     Distribution operator*(const Distribution& other) const;
     Distribution operator*(double scalar) const;
-    Distribution reciprocal() const;
+    Distribution reciprocal();
     double mean();
     double variance();
     double integrand(Distribution& measurement, int index, bool ev) const;
     double integral(Distribution& measurement, bool ev) const;
     double posterior(Distribution& measurement) const;
+
+    static Distribution lognorm_from_mean_and_variance(double mean, double var);
 };

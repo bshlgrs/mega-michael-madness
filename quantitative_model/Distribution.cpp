@@ -66,45 +66,9 @@ double get_delta(int index)
 }
 
 /*
- * Combine an array of distributions using some binary operator (folds
- * left).
+ * Default initialization as Buckets type.
  */
-// Distribution *foldl_dists(
-//     function<Distribution *(const Distribution *, const Distribution *)> f,
-//     const Distribution *dists[], int length)
-// {
-//     Distribution *curr = NULL;
-//     Distribution *next = NULL;
-//     for (int i = 1; i < length; i++) {
-//         if (i == 1) {
-//             next = f(dists[0], dists[i]);
-//         } else {
-//             next = f(curr, dists[i]);
-//             delete curr;
-//         }
-//         curr = next;
-//     }
-//     return curr;
-// }
-
-// Distribution *sum_dists(const Distribution *dists[], int length)
-// {
-//     return foldl_dists([](const Distribution *x, const Distribution *y) {
-//             return *x + y;
-//         }, dists, length);
-// }
-
-// Distribution *product_dists(const Distribution *dists[], int length)
-// {
-//     return foldl_dists([](const Distribution *x, const Distribution *y) {
-//             return *x * y;
-//         }, dists, length);
-// }
-
-Distribution::Distribution()
-{
-    type = Type::empty;
-}
+Distribution::Distribution() : Distribution(Type::buckets) {}
 
 Distribution::Distribution(Type type) : buckets(NUM_BUCKETS, 0)
 {
@@ -140,7 +104,6 @@ double Distribution::operator[](int index) const
 
 double Distribution::get(int index) const
 {
-    check_empty();
     if (type == Type::lognorm) {
         return pdf(bucket_prob(index));
     } else {
@@ -148,21 +111,36 @@ double Distribution::get(int index) const
     }
 }
 
-void Distribution::check_empty() const
+Distribution Distribution::lognorm_from_mean_and_variance(
+    double mean,
+    double var)
 {
-    if (type == Type::empty) {
-        throw "Cannot use empty Distribution. Did you try to extract a non-existent value?";
-    }
+    double p_m = log(mean / sqrt(1 + var / pow(mean, 2)));
+    double p_s = sqrt(log(1 + var / pow(mean, 2)));
+    Distribution res(p_m, p_s);
+    return res;
 }
 
+/*
+ * Approximates this distribution using a log-normal distribution. If
+ * already lognormal, returns itself.
+ */
+Distribution Distribution::to_lognorm()
+{
+    if (type == Type::lognorm) {
+        return *this;
+    } else {
+        return Distribution::lognorm_from_mean_and_variance(
+            this->mean(), this->variance());
+    }
+}
 
 /*
  * Calculates the sum of two probability distributions.
  */
 Distribution Distribution::operator+(const Distribution& other) const
 {
-    check_empty();
-    Distribution res;
+    Distribution res(Type::buckets);
     for (int i = 0; i < NUM_BUCKETS; i++) {
         for (int j = 0; j < NUM_BUCKETS; j++) {
             int index = bucket_index(bucket_prob(i) + bucket_prob(j));
@@ -177,61 +155,103 @@ Distribution Distribution::operator+(const Distribution& other) const
 }
 
 /*
+ * Approximates the difference of two distributions by representing
+ * them as log-normal and then taking the difference of the log-normal
+ * distributions.
+ */
+Distribution Distribution::operator-(Distribution& other) {
+    if (type == Type::lognorm || other.type == Type::lognorm) {
+        Distribution x = this->to_lognorm();
+        Distribution y = other.to_lognorm();
+        return x - y;
+    } else {
+        double mean1 = this->mean();
+        double mean2 = other.mean();
+        double var1 = this->variance();
+        double var2 = other.variance();
+        double new_mean = mean1 - mean2;
+
+        /* The formula for variance is given by
+         *   Var(X - Y) = E[X^2] - 2(Cov[X,Y] + E[X]E[Y]) + E[Y^2] - E[X-Y]^2
+         */
+        double new_var = (var1 + pow(mean1, 2))
+            - 2 * mean1 * mean2
+            + (var2 + pow(mean2, 2))
+            - pow(mean1 - mean2, 2);
+        return Distribution::lognorm_from_mean_and_variance(new_mean, new_var);
+    }
+}
+
+/*
  * Calculates the product of two probability distributions.
  */
 Distribution Distribution::operator*(const Distribution& other) const
 {
-    check_empty();
     if (type == Type::lognorm
         && other.type == Type::lognorm) {
         double new_p_m = p_m * other.p_m;
         double new_p_s = sqrt(pow(p_s, 2) + pow(other.p_s, 2));
         Distribution res(new_p_m, new_p_s);
         return res;
+    } else {
+        Distribution res(Type::buckets);
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            for (int j = 0; j < NUM_BUCKETS; j++) {
+                int index = bucket_index(bucket_prob(i) * bucket_prob(j));
+                double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
+                if (index >= NUM_BUCKETS) {
+                    index = NUM_BUCKETS - 1;
+                } else if (index < 0) {
+                    index = 0;
+                }
+                res.buckets[index] += mass / get_delta(index);
+            }
+        }
+        return res;
     }
+}
 
-    Distribution res(Type::buckets);
-    for (int i = 0; i < NUM_BUCKETS; i++) {
-        for (int j = 0; j < NUM_BUCKETS; j++) {
-            int index = bucket_index(bucket_prob(i) * bucket_prob(j));
-            double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
+/*
+ * Multiplies a distribution by a scalar.
+ */
+Distribution Distribution::operator*(double scalar) const
+{
+    if (this->type == Type::lognorm) {
+        Distribution res(p_m * scalar, p_s);
+        return res;
+    } else {
+        /* TODO: test this */
+        Distribution res(Type::buckets);
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            int index = bucket_index(bucket_prob(i) * scalar);
+            double density = get(i);
             if (index >= NUM_BUCKETS) {
                 index = NUM_BUCKETS - 1;
             } else if (index < 0) {
                 index = 0;
             }
-            res.buckets[index] += mass / get_delta(index);
+            res.buckets[index] += density;
         }
+        return res;
     }
-    return res;
 }
 
 /*
- * TODO: test this
+ * Returns the log-normally-distributed reciprocal of this
+ * distribution. That is, if this distribution has probably P at
+ * location X, the reciprocal distribution has probability P at
+ * location 1/X.
+ * 
+ * If this distribution is not log-normal, first converts it to a
+ * log-normal approximation.
  */
-Distribution Distribution::operator*(double scalar) const
+Distribution Distribution::reciprocal()
 {
-    check_empty();
-    if (this->type == Type::lognorm) {
-        Distribution res(p_m * scalar, p_s);
-        return res;
-    } else {
-        // TODO: idk
-        Distribution res;
-        return res;
-    }
-}
-
-Distribution Distribution::reciprocal() const
-{
-    check_empty();
     if (this->type == Type::lognorm) {
         Distribution res(1 / p_m, p_s);
         return res;
     } else {
-        // TODO: do something idk
-        Distribution res;
-        return res;
+        return this->to_lognorm().reciprocal();
     }
 }
 
@@ -240,8 +260,6 @@ Distribution Distribution::reciprocal() const
  */
 double Distribution::mean()
 {
-    check_empty();
-
     if (is_mean_cached) {
         return cached_mean;
     }
@@ -263,8 +281,6 @@ double Distribution::mean()
 
 double Distribution::variance()
 {
-    check_empty();
-
     if (!is_mean_cached) {
         mean();
     }
@@ -284,7 +300,6 @@ double Distribution::variance()
 
 double Distribution::integrand(Distribution& measurement, int index, bool ev) const
 {
-    check_empty();
     double u = bucket_min_prob(index);
     double prior = this->get(index);
     double update = 0;
@@ -309,7 +324,6 @@ double Distribution::integrand(Distribution& measurement, int index, bool ev) co
 
 double Distribution::integral(Distribution& measurement, bool ev) const
 {
-    check_empty();
     double total = 0;
     double x_lo = pow(STEP, -EXP_OFFSET);
     double x_hi = x_lo * STEP;
