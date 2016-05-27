@@ -1,2 +1,2 @@
 all:
-	clang++ --std=c++11 -Wall Distribution.cpp QuantitativeModel.cpp
+	clang++ --std=c++11 -g -Wall Distribution.cpp QuantitativeModel.cpp

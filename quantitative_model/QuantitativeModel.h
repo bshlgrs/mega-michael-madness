@@ -10,6 +10,7 @@
 
 #define _USE_MATH_DEFINES // for M_PI
 
+#include <algorithm> /* for min/max */
 #include <cmath>
 #include <fstream>
 #include <functional>
@@ -31,9 +32,14 @@ private:
     double cached_mean = 0;
     bool is_mean_cached = false;
     
+    std::vector<double> prefix_sum() const;
+    void half_sum(Distribution& res, const Distribution& other, int include_diagonal) const;
+    double integrand(Distribution& measurement, int index, bool ev) const;
+    
 public:
     std::function<double(double)> pdf;
     std::vector<double> buckets;
+    std::string name;
 
     /* using enum instead of subclasses because C++ is stupid */
     Type type;
@@ -59,7 +65,6 @@ public:
     Distribution reciprocal();
     double mean();
     double variance();
-    double integrand(Distribution& measurement, int index, bool ev) const;
     double integral(Distribution& measurement, bool ev) const;
     double posterior(Distribution& measurement) const;
 

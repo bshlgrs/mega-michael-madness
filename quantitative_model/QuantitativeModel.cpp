@@ -29,6 +29,7 @@ public:
             cerr << "Warning: \"" << b << "\" is not in the table." << endl;
         }
 
+        table[b].name = b;
         return table[b];
     }
 
@@ -209,6 +210,14 @@ Table read_input(string filename)
 
     set_globals(table);
     set_EV_far_future(table);
+    cerr << "um I guess " << (int) table["factory farming weighted utility"].type << endl;
+    cerr << "um I guess " << (int) table["utility per em"].type << endl;
+    table["who cares"] =
+        // table["utility per wealthy human"]
+        // + table["utility per em"];
+        table["factory farming weighted utility"]
+        + table["wild vertebrate weighted utility"];
+    cerr << "SUPER IMPORTANT RESULT IS " << table["who cares"].mean() << endl;
 
     WARN_ABOUT_MISSING_KEYS = WARN_ABOUT_MISSING_KEYS_SAVED;
     return table;
@@ -253,6 +262,8 @@ int main(int argc, char *argv[])
         cout << "cage free estimate p_s^2," << pow(cage.p_s, 2) << endl;
         cout << "thl_posterior_direct," << prior.posterior(thl) << endl; // 194.8
         cout << "cage_free_posterior_direct," << prior.posterior(cage) << endl; // 2531
+
+        cerr << "Done" << endl;
         
     } catch (const char *msg) {
         cerr << msg << endl;

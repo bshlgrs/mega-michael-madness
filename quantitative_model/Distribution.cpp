@@ -26,8 +26,14 @@ function<double(double)> lognorm_pdf(double p_m, double p_s)
     double mu = log(p_m);
     double s = log(10) * p_s;
     return [mu, s](double x) -> double {
-        return 1 / (x * s * sqrt(2 * M_PI)) *
-            exp(-0.5 * pow((log(x) - mu) / s, 2));
+        if (abs((log(x) - mu) / s) > 10) {
+            /* Manually handle case where x is many standard devations
+             * out, to prevent overflow */
+            return 0;
+        } else {
+            return 1 / (x * s * sqrt(2 * M_PI)) *
+                exp(-0.5 * pow((log(x) - mu) / s, 2));
+        }
     };
 }
 
@@ -137,12 +143,51 @@ Distribution Distribution::to_lognorm()
     }
 }
 
+vector<double> Distribution::prefix_sum() const
+{
+    vector<double> res;
+    res.push_back(get(0) * get_delta(0));
+    for (int i = 1; i < NUM_BUCKETS; i++) {
+        res.push_back(res.back() + get(i) * get_delta(i));
+    }
+    return res;
+}
+
+void Distribution::half_sum(Distribution& res, const Distribution& other, int include_diagonal) const
+{
+    vector<double> other_prefix_sum = other.prefix_sum();
+    // log_STEP(2) gives approximate most steps away a sum can be,
+    // then add a constant to be safe
+    int band_size = (int) ceil(log(2) / log(STEP) + 3);
+
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+        if (i > band_size) {
+            double mass = other_prefix_sum[i - band_size - 1] * get(i) * get_delta(i);
+            res.buckets[i] += mass / get_delta(i);
+        }
+        for (int j = max(i - band_size, 0); j < i + include_diagonal; j++) {
+            int index = bucket_index(bucket_value(i) + bucket_value(j));
+            double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
+            if (index >= NUM_BUCKETS) {
+                index = NUM_BUCKETS - 1;
+            }
+            res.buckets[index] += mass / get_delta(index);
+        }
+    }
+    cerr << (include_diagonal ? "half " : "") << "sum has mean " << res.mean() << endl;
+}
+
 /*
  * Calculates the sum of two probability distributions.
  */
 Distribution Distribution::operator+(const Distribution& other) const
 {
     Distribution res(Type::buckets);
+
+    // half_sum(res, other, 1);
+    // other.half_sum(res, *this, 0);
+    // return res;
+
     for (int i = 0; i < NUM_BUCKETS; i++) {
         for (int j = 0; j < NUM_BUCKETS; j++) {
             int index = bucket_index(bucket_value(i) + bucket_value(j));
@@ -180,7 +225,6 @@ Distribution Distribution::operator-(Distribution& other) {
             - 2 * mean1 * mean2
             + (var2 + pow(mean2, 2))
             - pow(mean1 - mean2, 2);
-        cerr << new_mean << " AND " << new_var << endl;
         return Distribution::lognorm_from_mean_and_variance(new_mean, new_var);
     }
 }
