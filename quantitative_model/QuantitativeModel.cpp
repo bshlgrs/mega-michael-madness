@@ -43,12 +43,6 @@ public:
     }
 };
 
-double Distribution::posterior(Distribution& measurement) const
-{
-    double c = integral(measurement, false);
-    return integral(measurement, true) / c;
-}
-
 /*
  * Converts an 80% credence interval into a log-normal distribution.
  */
@@ -253,8 +247,10 @@ int main(int argc, char *argv[])
 
         Distribution thl = thl_estimate_direct(table, prior);
         Distribution cage = cage_free_estimate_direct(table, prior);
-        cout << "thl_estimate_direct," << thl.mean() << endl;
-        cout << "cage_free_estimate_direct," << cage.mean() << endl;
+        cout << "THL estimate p_m," << thl.p_m << endl;
+        cout << "THL estimate p_s^2," << pow(thl.p_s, 2) << endl;
+        cout << "cage free estimate p_m," << cage.p_m << endl;
+        cout << "cage free estimate p_s^2," << pow(cage.p_s, 2) << endl;
         cout << "thl_posterior_direct," << prior.posterior(thl) << endl; // 194.8
         cout << "cage_free_posterior_direct," << prior.posterior(cage) << endl; // 2531
         

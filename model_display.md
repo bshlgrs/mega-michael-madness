@@ -11,7 +11,7 @@ Let's sort out our opinions on good different beings' lives are, and how much we
 @developing-world human well-being,0.6
 @factory-farmed animal wellbeing,6
 @factory-farmed animal sentience adjustment,0.3
-@cage-free well-being improvement,0.3
+@cage-free well-being improvement,1
 @wild vertebrate well-being,-2
 @wild vertebrate sentience adjustment,0.2
 @insect well-being,4
@@ -65,7 +65,9 @@ Let's talk about cage free!
 Results:
 
 $EV of far future
-$thl_estimate_direct
-$cage_free_estimate_direct
+$THL estimate p_m
+$THL estimate p_s^2
+$cage free estimate p_m
+$cage free estimate p_s^2
 $thl_posterior_direct
 $cage_free_posterior_direct

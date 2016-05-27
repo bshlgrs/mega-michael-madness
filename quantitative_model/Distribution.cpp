@@ -41,18 +41,18 @@ int bucket_index(double x)
 }
 
 /*
- * Gives probability density in the (geometric) middle of the
+ * Gives the value in the (geometric) middle of the
  * bucket. Sort-of the opposite of `bucket_index`.
  */
-double bucket_prob(int index)
+double bucket_value(int index)
 {
     return pow(STEP, index - EXP_OFFSET + 0.5);
 }
 
 /*
- * Gives probability density at the bottom of the bucket.
+ * Gives value at the bottom of the bucket.
  */
-double bucket_min_prob(int index)
+double bucket_min_value(int index)
 {
     return pow(STEP, index - EXP_OFFSET);
 }
@@ -93,7 +93,7 @@ Distribution::Distribution(function<double(double)> pdf) :
     Distribution(Type::buckets)
 {
     for (int i = 0; i < NUM_BUCKETS; i++) {
-        buckets[i] = pdf(bucket_prob(i));
+        buckets[i] = pdf(bucket_value(i));
     }
 }
 
@@ -105,7 +105,7 @@ double Distribution::operator[](int index) const
 double Distribution::get(int index) const
 {
     if (type == Type::lognorm) {
-        return pdf(bucket_prob(index));
+        return pdf(bucket_value(index));
     } else {
         return buckets[index];
     }
@@ -145,7 +145,7 @@ Distribution Distribution::operator+(const Distribution& other) const
     Distribution res(Type::buckets);
     for (int i = 0; i < NUM_BUCKETS; i++) {
         for (int j = 0; j < NUM_BUCKETS; j++) {
-            int index = bucket_index(bucket_prob(i) + bucket_prob(j));
+            int index = bucket_index(bucket_value(i) + bucket_value(j));
             double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
             if (index >= NUM_BUCKETS) {
                 index = NUM_BUCKETS - 1;
@@ -200,7 +200,7 @@ Distribution Distribution::operator*(const Distribution& other) const
         Distribution res(Type::buckets);
         for (int i = 0; i < NUM_BUCKETS; i++) {
             for (int j = 0; j < NUM_BUCKETS; j++) {
-                int index = bucket_index(bucket_prob(i) * bucket_prob(j));
+                int index = bucket_index(bucket_value(i) * bucket_value(j));
                 // yay properties of exponentiation!
                 // int index = bucket_index(i + j - EXP_OFFSET);
                 double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
@@ -228,7 +228,7 @@ Distribution Distribution::operator*(double scalar) const
         /* TODO: test this */
         Distribution res(Type::buckets);
         for (int i = 0; i < NUM_BUCKETS; i++) {
-            int index = bucket_index(bucket_prob(i) * scalar);
+            int index = bucket_index(bucket_value(i) * scalar);
             double density = get(i);
             if (index >= NUM_BUCKETS) {
                 index = NUM_BUCKETS - 1;
@@ -277,7 +277,7 @@ double Distribution::mean()
         cached_mean = p_m * exp(0.5 * pow(sigma, 2));
     } else {
         for (int i = 0; i < NUM_BUCKETS; i++) {
-            cached_mean += bucket_prob(i) * get(i) * get_delta(i);
+            cached_mean += bucket_value(i) * get(i) * get_delta(i);
         }
     }
 
@@ -291,13 +291,13 @@ double Distribution::variance()
     }
 
     if (this->type == Type::lognorm) {
-        /* seehttp://www.amazon.com/Products-MPS4-Master-Plunger-Shorty/dp/B005UJLVGI%3Fpsc%3D1%26SubscriptionId%3DAKIAIH6BKLR7M6KSMDGQ%26tag%3Daboutcom02plumbing-20%26linkCode%3Dxm2%26camp%3D2025%26creative%3D165953%26creativeASIN%3DB005UJLVGI https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
+        /* see https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
         double sigma = log(10) * p_s;
         return pow(cached_mean, 2) * (exp(pow(sigma, 2)) - 1);
     } else {
         double sigma2 = 0;
         for (int i = 0; i < NUM_BUCKETS; i++) {
-            sigma2 += pow(bucket_prob(i), 2) * get(i) * get_delta(i);
+            sigma2 += pow(bucket_value(i), 2) * get(i) * get_delta(i);
         }
         return sigma2 - pow(cached_mean, 2);
     }
@@ -305,7 +305,7 @@ double Distribution::variance()
 
 double Distribution::integrand(Distribution& measurement, int index, bool ev) const
 {
-    double u = bucket_min_prob(index);
+    double u = bucket_value(index);
     double prior = this->get(index);
     double update = 0;
     if (measurement.type == Type::buckets) {
@@ -313,9 +313,9 @@ double Distribution::integrand(Distribution& measurement, int index, bool ev) co
         // TODO: just do this directly numerically
         double mean1 = measurement.mean();
         double var = measurement.variance();
-        double mu = log(mean1 / sqrt(1 + var / pow(mean1, 2)));
+        double expmu = mean1 / sqrt(1 + var / pow(mean1, 2));
         double sigma = sqrt(log(1 + var / pow(mean1, 2)));
-        update = lognorm_pdf(u, sigma / log(10))(exp(mu));
+        update = lognorm_pdf(u, sigma / log(10))(expmu);
     } else {
         update = lognorm_pdf(u, measurement.p_s)(measurement.p_m);
     }
@@ -335,7 +335,7 @@ double Distribution::integral(Distribution& measurement, bool ev) const
     double y_lo = integrand(measurement, 0, ev);
     double y_hi;
     double avg, delta;
-    for (int i = 1; i <= NUM_BUCKETS; i++) {
+    for (int i = 0; i < NUM_BUCKETS; i++) {
         y_hi = integrand(measurement, i, ev);
         avg = (y_lo + y_hi) / 2;
         delta = x_hi - x_lo;
@@ -346,4 +346,10 @@ double Distribution::integral(Distribution& measurement, bool ev) const
         y_lo = y_hi;
     }
     return total;
+}
+
+double Distribution::posterior(Distribution& measurement) const
+{
+    double c = integral(measurement, false);
+    return integral(measurement, true) / c;
 }
