@@ -51,7 +51,7 @@ What about the far future?
 @factory farmed animals per star,1e10,1e12
 @wild vertebrates per star,1e13,1e16
 @insects per star,1e17,1e21
-@simulation per insect,1e-3,1
+@simulations per insect,1e-3,1
 
 Let's talk about cage free!
 
@@ -64,5 +64,8 @@ Let's talk about cage free!
 
 Results:
 
+$EV of far future
+$thl_estimate_direct
+$cage_free_estimate_direct
 $thl_posterior_direct
 $cage_free_posterior_direct

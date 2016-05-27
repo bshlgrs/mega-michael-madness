@@ -89,7 +89,7 @@ void set_globals(Table& table)
         * table["paperclips per human brain"];
     table["utility per dolorium"] =
         table["dolorium well-being"]
-        * table["dolorium per human brain"];
+        * table["dolorium brains per human brain"];
 
     table["computer brains in far future"] =
         table["accessible stars by computers"]
@@ -106,8 +106,8 @@ void set_EV_far_future(Table& table)
     table["P(humans exist)"] = table["P(fill universe with biology)"];
     table["P(hedonium exists)"] =
         table["P(fill universe with computers)"] * table["P(hedonium)"];
-    table["p(ems exist)"] =
-        table["p(fill universe with computers)"] * table["p(ems)"];
+    table["P(ems exist)"] =
+        table["P(fill universe with computers)"] * table["P(ems)"];
 
     table["human weighted utility"] =
         table["P(humans exist)"]
@@ -239,7 +239,7 @@ Distribution cage_free_estimate_direct(Table& table, const Distribution& prior)
         * table["cage-free years per cage prevented"]
         * table["utility per cage removed"]
         * 1000;
-    
+    return utility_estimate;
 }
 
 int main(int argc, char *argv[])
@@ -249,8 +249,14 @@ int main(int argc, char *argv[])
         Table table = read_input(argv[1]);
         Distribution prior(table["log-normal prior mu"].p_m, table["log-normal prior sigma"].p_m);
 
-        cout << "thl_posterior_direct," << thl_posterior_direct(table, prior) << endl; // 194.8
-        cout << "cage_free_posterior_direct," << cage_free_posterior_direct(table, prior) << endl; // 2531
+        cout << "EV of far future," << table["EV of far future"].mean() << endl;
+
+        Distribution thl = thl_estimate_direct(table, prior);
+        Distribution cage = cage_free_estimate_direct(table, prior);
+        cout << "thl_estimate_direct," << thl.mean() << endl;
+        cout << "cage_free_estimate_direct," << cage.mean() << endl;
+        cout << "thl_posterior_direct," << prior.posterior(thl) << endl; // 194.8
+        cout << "cage_free_posterior_direct," << prior.posterior(cage) << endl; // 2531
         
     } catch (const char *msg) {
         cerr << msg << endl;

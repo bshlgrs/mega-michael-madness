@@ -115,9 +115,11 @@ Distribution Distribution::lognorm_from_mean_and_variance(
     double mean,
     double var)
 {
-    double p_m = log(mean / sqrt(1 + var / pow(mean, 2)));
-    double p_s = sqrt(log(1 + var / pow(mean, 2)));
+    double p_m = mean / sqrt(1 + var / pow(mean, 2));
+    double p_s = sqrt(log(1 + var / pow(mean, 2))) / log(10);
+    cerr << "p_m " << p_m << ", p_s^2 " << p_s * p_s << endl;
     Distribution res(p_m, p_s);
+    cerr << "mean " << res.mean() << endl;
     return res;
 }
 
@@ -178,6 +180,7 @@ Distribution Distribution::operator-(Distribution& other) {
             - 2 * mean1 * mean2
             + (var2 + pow(mean2, 2))
             - pow(mean1 - mean2, 2);
+        cerr << new_mean << " AND " << new_var << endl;
         return Distribution::lognorm_from_mean_and_variance(new_mean, new_var);
     }
 }
@@ -198,6 +201,8 @@ Distribution Distribution::operator*(const Distribution& other) const
         for (int i = 0; i < NUM_BUCKETS; i++) {
             for (int j = 0; j < NUM_BUCKETS; j++) {
                 int index = bucket_index(bucket_prob(i) * bucket_prob(j));
+                // yay properties of exponentiation!
+                // int index = bucket_index(i + j - EXP_OFFSET);
                 double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
                 if (index >= NUM_BUCKETS) {
                     index = NUM_BUCKETS - 1;
