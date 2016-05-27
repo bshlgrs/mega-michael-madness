@@ -210,8 +210,6 @@ Table read_input(string filename)
 
     set_globals(table);
     set_EV_far_future(table);
-    cerr << "um I guess " << (int) table["factory farming weighted utility"].type << endl;
-    cerr << "um I guess " << (int) table["utility per em"].type << endl;
     table["who cares"] =
         // table["utility per wealthy human"]
         // + table["utility per em"];

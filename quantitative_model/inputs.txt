@@ -1,4 +1,4 @@
-log-normal prior mu,0.1,0.1
+log-normal prior mu,1,1
 log-normal prior sigma,0.75,0.75
 wealthy human well-being,1,1
 developing-world human well-being,0.6,0.6

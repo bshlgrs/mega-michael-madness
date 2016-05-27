@@ -174,7 +174,6 @@ void Distribution::half_sum(Distribution& res, const Distribution& other, int in
             res.buckets[index] += mass / get_delta(index);
         }
     }
-    cerr << (include_diagonal ? "half " : "") << "sum has mean " << res.mean() << endl;
 }
 
 /*
@@ -184,20 +183,8 @@ Distribution Distribution::operator+(const Distribution& other) const
 {
     Distribution res(Type::buckets);
 
-    // half_sum(res, other, 1);
-    // other.half_sum(res, *this, 0);
-    // return res;
-
-    for (int i = 0; i < NUM_BUCKETS; i++) {
-        for (int j = 0; j < NUM_BUCKETS; j++) {
-            int index = bucket_index(bucket_value(i) + bucket_value(j));
-            double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
-            if (index >= NUM_BUCKETS) {
-                index = NUM_BUCKETS - 1;
-            }
-            res.buckets[index] += mass / get_delta(index);
-        }
-    }
+    half_sum(res, other, 1);
+    other.half_sum(res, *this, 0);
     return res;
 }
 
