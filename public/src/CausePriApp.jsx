@@ -1,85 +1,16 @@
 const CausePriApp = React.createClass({
-  getInitialState() {
-    return {
-      inputs: this.props.initialInputs,
-      dataResult: {},
-      selectedTab: 0
-    }
-  },
 
-  handleInputChange(e, inputName, field) {
-    var inputs = this.state.inputs;
-    inputs[inputName][field] = e.target.value;
+  // Michael -- You should only have to edit the code between here and the comment where I tell you to stop.
 
-    this.setState({
-      inputs: inputs
-    })
-  },
+  // To make a new tab, add it to the allTabs() method and then copy one of the tab rendering methods.
 
-  submit () {
-    var that = this;
-    $.post("/eval", { inputs: this.state.inputs }, function (e) {
-      that.setState({dataResult: e});
-    });
-  },
-
-  handleTabChange(idx) {
-    this.setState({"selectedTab": idx});
-  },
-
-  interpretCell(cell) {
-    if (cell[0] == "$") {
-      return this.output(cell.slice(1));
-    } else if (cell[0] == "@") {
-      return this.input(cell.slice(1), "value");
-    } else {
-      return cell;
-    }
-  },
-
-  firstTr(args) {
-    return <tr>{args.map((x, idx) => <th key={idx}>{this.interpretCell(x)}</th>)}</tr>
-  },
-
-  tr(args) {
-    return <tr>{args.map((x, idx) => <td key={idx}>{this.interpretCell(x)}</td>)}</tr>
-  },
-
-  output(name, type) {
-    console.log(name);
-    return <span>{this.state.dataResult[name] && this.state.dataResult[name][type || "value"] || "unknown"}</span>
-  },
-
-  input(name, type, value) {
-    return <input
-      onChange={(e) => this.handleInputChange(e, name, type)}
-      value={this.state.inputs[name] && this.state.inputs[name][type] || value}
-      />
-  },
-
-  simpleScalarsTable(things) {
-    return <Table>
-      <tr><th>Variable</th><th>Estimate</th></tr>
-      {things.map((row, idx) =>
-        <tr key={idx}>
-          <td>{row[0]}</td>
-          <td>{this.input(row[0], "value", row[1])}</td>
-        </tr>)
-      }
-    </Table>
-  },
-
-  simpleDistributionsTable(things) {
-    return <Table>
-      <tr><th>Variable</th><th>10% CI</th><th>90% CI</th></tr>
-      {things.map((row, idx) =>
-        <tr key={idx}>
-          <td>{row[0]}</td>
-          <td>{this.input(row[0], "low", row[1])}</td>
-          <td>{this.input(row[0], "high", row[2])}</td>
-        </tr>)
-      }
-    </Table>
+  allTabs() {
+    return [
+      ["Main", this.renderMainTab()],
+      ["Globals", this.renderGlobalsTab()],
+      ["FarFuture", this.renderFarFutureTab()],
+      ["CageFree", this.renderCageFreeTab()]
+    ]
   },
 
   renderMainTab() {
@@ -95,30 +26,6 @@ const CausePriApp = React.createClass({
       <p>This is a paragraph.</p>
 
       <p>By the way, the far future has value {this.output("EV of far future", "value")}.</p>
-    </div>
-  },
-
-  renderCageFreeTab() {
-    return <div>
-      <h3>Cage-free</h3>
-
-      <p>Let's talk about cage free!</p>
-
-      {this.simpleDistributionsTable([
-        ["THL years factory farming prevented per $1000",700,13000],
-        ["cage-free total expenditures ($M)",2,3],
-        ["years until cage-free would have happened anyway",5,10],
-        ["millions of cages prevented",100,150],
-        ["proportion of change attributable to campaigns",0.7,1],
-        ["cage-free years per cage prevented",1,1]
-      ])}
-    </div>
-  },
-
-  renderOtherTab() {
-    return <div>
-      <h3>Other Tab</h3>
-
     </div>
   },
 
@@ -202,8 +109,136 @@ const CausePriApp = React.createClass({
     </div>
   },
 
+  renderCageFreeTab() {
+    return <div>
+      <h3>Cage-free</h3>
+
+      <p>Let's talk about cage free!</p>
+
+      {this.simpleDistributionsTable([
+        ["THL years factory farming prevented per $1000",700,13000],
+        ["cage-free total expenditures ($M)",2,3],
+        ["years until cage-free would have happened anyway",5,10],
+        ["millions of cages prevented",100,150],
+        ["proportion of change attributable to campaigns",0.7,1],
+        ["cage-free years per cage prevented",1,1]
+      ])}
+    </div>
+  },
+
+  //////// MICHAEL, DON'T EDIT BELOW THIS LINE.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  getInitialState() {
+    return {
+      inputs: this.props.initialInputs,
+      dataResult: {},
+      selectedTab: 0
+    }
+  },
+
+  handleInputChange(e, inputName, field) {
+    var inputs = this.state.inputs;
+    inputs[inputName][field] = e.target.value;
+
+    this.setState({
+      inputs: inputs
+    })
+  },
+
+  submit () {
+    var that = this;
+    $.post("/eval", { inputs: this.state.inputs }, function (e) {
+      that.setState({dataResult: e});
+    });
+  },
+
+  handleTabChange(idx) {
+    this.setState({"selectedTab": idx});
+  },
+
+  interpretCell(cell) {
+    if (cell[0] == "$") {
+      return this.output(cell.slice(1));
+    } else if (cell[0] == "@") {
+      return this.input(cell.slice(1), "value");
+    } else {
+      return cell;
+    }
+  },
+
+  firstTr(args) {
+    return <tr>{args.map((x, idx) => <th key={idx}>{this.interpretCell(x)}</th>)}</tr>
+  },
+
+  tr(args) {
+    return <tr>{args.map((x, idx) => <td key={idx}>{this.interpretCell(x)}</td>)}</tr>
+  },
+
+  output(name, type) {
+    console.log(name);
+    return <span>{this.state.dataResult[name] && this.state.dataResult[name][type || "value"] || "unknown"}</span>
+  },
+
+  input(name, type, value) {
+    return <input
+      onChange={(e) => this.handleInputChange(e, name, type)}
+      value={this.state.inputs[name] && this.state.inputs[name][type] || value}
+      />
+  },
+
+  simpleScalarsTable(things) {
+    return <Table>
+      <tr><th>Variable</th><th>Estimate</th></tr>
+      {things.map((row, idx) =>
+        <tr key={idx}>
+          <td>{row[0]}</td>
+          <td>{this.input(row[0], "value", row[1])}</td>
+        </tr>)
+      }
+    </Table>
+  },
+
+  simpleDistributionsTable(things) {
+    return <Table>
+      <tr><th>Variable</th><th>10% CI</th><th>90% CI</th></tr>
+      {things.map((row, idx) =>
+        <tr key={idx}>
+          <td>{row[0]}</td>
+          <td>{this.input(row[0], "low", row[1])}</td>
+          <td>{this.input(row[0], "high", row[2])}</td>
+        </tr>)
+      }
+    </Table>
+  },
+
+
+
+
   render () {
-    var tabs = [this.renderMainTab(), this.renderGlobalsTab(), this.renderFarFutureTab(), this.renderCageFreeTab(), this.renderOtherTab()];
+    var tabs = this.allTabs();
 
     return <div>
       <div>
@@ -213,16 +248,16 @@ const CausePriApp = React.createClass({
             Calculate!
           </button>
         <ul className="nav nav-tabs">
-          {["Main", "Globals", "Far Future", "Cage Free", "Other"].map((tab, idx) =>
+          {tabs.map((tab, idx) =>
             <li role="presentation" key={idx} className={idx == this.state.selectedTab ? "active" : ""}>
               <a href="#" onClick={() => this.handleTabChange(idx)}>
-                {tab}
+                {tab[0]}
               </a>
             </li>
           )}
         </ul>
 
-        {tabs[this.state.selectedTab]}
+        {tabs[this.state.selectedTab][1]}
       </div>
     </div>;
   }
