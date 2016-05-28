@@ -41,7 +41,7 @@ post '/eval' do
 
   res = `./quantitative_model/a.out input#{magic_number}`
   `rm "input#{magic_number}"`
-  handle_data_lines(res.split("\n")).to_json
+  json(handle_data_lines(res.split("\n")))
 end
 
 def get_default_inputs

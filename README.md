@@ -15,3 +15,9 @@ Then run it with
     bundle exec ruby server.rb 8080
 
 and it should be running on port 8080.
+
+
+## TODO
+
+- validate input--if they type "blah" as a number, it should warn them
+- display large numbers with scientific notation more consistently
