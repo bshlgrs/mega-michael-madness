@@ -258,10 +258,10 @@ const CausePriApp = React.createClass({
     return <Table>
       <tbody>
         <tr>
-          <th>Variable</th>
-          <th>Estimate</th>
-          <th>Original estimate</th>
-          <th>Notes</th>
+          <th></th>
+          <th>estimate</th>
+          <th>(original)</th>
+          <th>notes</th>
         </tr>
       </tbody>
       {things.map((row, idx) => <ScalarRow key={idx} row={row} input={this.input}/>)}
@@ -272,7 +272,7 @@ const CausePriApp = React.createClass({
     return <Table>
       <tbody>
         <tr>
-          <th>Variable</th>
+          <th></th>
           <th>10% CI</th>
           <th>(original)</th>
           <th>90% CI</th>
@@ -358,10 +358,26 @@ const CausePriApp = React.createClass({
             </ul>
           </div>
 
-          <div className="col-xs-7 col-xs-offset-2 col-sm-6 col-sm-offset-2 col-md-6 col-md-offset-2 main mycontent-left">
+          <div className="visible-xs-block">
+            <ul className="nav">
+              {tabs.map((tab, idx) =>
+                <li role="presentation" key={idx} className={idx == this.state.selectedTab ? "active" : ""}>
+                  <a href="#" onClick={() => this.handleTabChange(idx)}>
+                    {tab[0]}
+                  </a>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          <div className="col-xs-12 col-sm-5 col-sm-offset-2 col-md-5 col-md-offset-2 main mycontent-left">
             {tabs[this.state.selectedTab][1]}
           </div>
-          <div className="col-xs-3 col-sm-4 results col-md-4">
+          <div className="hidden-xs results col-sm-5">
+            {this.renderResultsTab()}
+          </div>
+
+          <div className="visible-xs-block col-xs-12">
             {this.renderResultsTab()}
           </div>
         </div>
@@ -378,9 +394,11 @@ const CausePriApp = React.createClass({
 
 const Table = React.createClass({
   render () {
-    return <table className="table table-striped">
-      {this.props.children}
-    </table>
+    return <div className="table-responsive">
+      <table className="table table-striped">
+        {this.props.children}
+      </table>
+    </div>
   }
 })
 
@@ -461,7 +479,7 @@ const InputsImportModal = React.createClass({
   },
   render () {
     return <Modal show={this.props.show} onHide={this.props.closeInputImporter}>
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>Import inputs</Modal.Title>
       </Modal.Header>
       <Modal.Body>
