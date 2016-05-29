@@ -332,6 +332,7 @@ const CausePriApp = React.createClass({
     e.preventDefault();
 
     this.setState({ inputs: JSON.parse(JSON.stringify(this.state.defaultInputs)) });
+    this.refs.inputModal.updateTextToString(JSON.stringify(this.state.defaultInputs));
   },
 
   toggleDisplayOriginalInputs(e) {
