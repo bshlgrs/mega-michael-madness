@@ -6,7 +6,7 @@ const CausePriApp = React.createClass({
 
   allTabs() {
     return [
-      ["Main", this.renderMainTab()],
+      ["Intro", this.renderIntroTab()],
       ["Globals", this.renderGlobalsTab()],
       ["Far Future", this.renderFarFutureTab()],
       ["Cage Free", this.renderCageFreeTab()]
@@ -17,7 +17,20 @@ const CausePriApp = React.createClass({
     setTimeout(() => this.submit(), 100);
   },
 
-  renderMainTab() {
+
+  renderIntroTab() {
+    return <div>
+      <h3>Cause prioritization app</h3>
+
+      <p>This is a paragraph.</p>
+
+      <p>This is another paragraph!</p>
+
+      <p>I'd write instructions for using this, but I know no-one will read them, so IDGAF</p>
+    </div>
+  },
+
+  renderResultsTab() {
     return <div>
       <h3>Results</h3>
 
@@ -300,7 +313,7 @@ const CausePriApp = React.createClass({
 
       <div className="container-fluid">
         <div className="row">
-          <div className="col-sm-3 col-md-2 sidebar">
+          <div className="col-sm-2 col-md-2 sidebar">
             <ul className="nav nav-sidebar">
               {tabs.map((tab, idx) =>
                 <li role="presentation" key={idx} className={idx == this.state.selectedTab ? "active" : ""}>
@@ -318,8 +331,11 @@ const CausePriApp = React.createClass({
             </button>
           </div>
 
-          <div className="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div className="col-sm-6 col-sm-offset-2 col-md-5 col-md-offset-2 main mycontent-left">
             {tabs[this.state.selectedTab][1]}
+          </div>
+          <div className="col-xs-4 results col-md-5">
+            {this.renderResultsTab()}
           </div>
       </div>
     </div>
