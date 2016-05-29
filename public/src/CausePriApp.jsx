@@ -323,7 +323,6 @@ const CausePriApp = React.createClass({
 
   toggleDisplayOriginalInputs(e) {
     this.setState({ displayOriginalInputs: !this.state.displayOriginalInputs });
-    e.preventDefault();
   },
 
   render () {
