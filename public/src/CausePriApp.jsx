@@ -306,7 +306,7 @@ const CausePriApp = React.createClass({
   handleResetInputs(e) {
     e.preventDefault();
 
-    this.setState({ inputs: this.props.initialInputs });
+    this.setState({ inputs: JSON.parse(JSON.stringify(this.props.initialInputs)) });
   },
 
   render () {
@@ -379,14 +379,14 @@ const CausePriApp = React.createClass({
             </ul>
           </div>
 
-          <div className="col-xs-12 col-sm-5 col-sm-offset-2 col-md-5 col-md-offset-2 main mycontent-left">
+          <div className="col-xs-12 col-sm-10 col-sm-offset-2 col-md-5 col-md-offset-2 main mycontent-left">
             {tabs[this.state.selectedTab][1]}
           </div>
-          <div className="hidden-xs results col-sm-5">
+          <div className="hidden-xs hidden-sm results col-md-5">
             {this.renderResultsTab()}
           </div>
 
-          <div className="visible-xs-block col-xs-12">
+          <div className="visible-xs-block visible-sm-block col-xs-12 col-sm-10 col-sm-offset-2">
             {this.renderResultsTab()}
           </div>
         </div>
