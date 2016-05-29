@@ -19,5 +19,4 @@ and it should be running on port 8080.
 
 ## TODO
 
-- validate input--if they type "blah" as a number, it should warn them
-- display large numbers with scientific notation more consistently
+- validate input on distributions--if 90% CI < 10% CI, tell them

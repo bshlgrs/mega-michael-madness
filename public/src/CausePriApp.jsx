@@ -35,9 +35,11 @@ const CausePriApp = React.createClass({
       <h3>Results</h3>
 
       <Table>
-        {this.firstTr(["Intervention", "Mean", "Variance", "posterior", "Notes"])}
-        {this.tr(["THL posterior", "$THL estimate p_m", "$THL estimate p_s^2", "$thl_posterior_direct", "this is a note"])}
-        {this.tr(["Cage free posterior", "$cage free estimate p_m", "$cage free estimate p_s^2", "$cage_free_posterior_direct", "this is also a note"])}
+        <tbody>
+          {this.firstTr(["Intervention", "Mean", "Variance", "posterior", "Notes"])}
+          {this.tr(["THL posterior", "$THL estimate p_m", "$THL estimate p_s^2", "$thl_posterior_direct", "this is a note"])}
+          {this.tr(["Cage free posterior", "$cage free estimate p_m", "$cage free estimate p_s^2", "$cage_free_posterior_direct", "this is also a note"])}
+        </tbody>
       </Table>
 
       <p>This is a paragraph.</p>
@@ -61,7 +63,7 @@ const CausePriApp = React.createClass({
 
       {this.simpleScalarsTable([
         ["wealthy human well-being", 1],
-        ["developing-world human well-being", 0.6],
+        ["developing-world human well-being", 0.6, "This is because blah blah blah blah."],
         ["factory-farmed animal wellbeing", 6],
         ["factory-farmed animal sentience adjustment", 0.3],
         ["cage-free well-being improvement", 1],
@@ -111,7 +113,7 @@ const CausePriApp = React.createClass({
 
 
       {this.simpleDistributionsTable([
-       ["years of future",1e11,1e12],
+       ["years of future",1e11,1e12,"THIS IS MY CITATION"],
        ["accessible stars by computers",1e11,1e14],
        ["usable wattage per star",1e20,1e25],
        ["brains per watt",0.1,0.1],
@@ -216,8 +218,6 @@ const CausePriApp = React.createClass({
   },
 
   output(name, type) {
-    console.log(name);
-
     if (this.state.calculating) {
       return <i className="fa fa-spinner fa-spin"></i>
     } else {
@@ -253,28 +253,31 @@ const CausePriApp = React.createClass({
 
   simpleScalarsTable(things) {
     return <Table>
-      <tr><th>Variable</th><th>Estimate</th><th>Original estimate</th></tr>
-      {things.map((row, idx) =>
-        <tr key={idx}>
-          <td>{row[0]}</td>
-          <td>{this.input(row[0], "value", row[1])}</td>
-          <td>{showFloatNicely(row[1])}</td>
-        </tr>)
-      }
+      <tbody>
+        <tr>
+          <th>Variable</th>
+          <th>Estimate</th>
+          <th>Original estimate</th>
+          <th>Notes</th>
+        </tr>
+      </tbody>
+      {things.map((row, idx) => <ScalarRow key={idx} row={row} input={this.input}/>)}
     </Table>
   },
 
   simpleDistributionsTable(things) {
     return <Table>
-      <tr><th>Variable</th><th>10% CI</th><th>(original)</th><th>90% CI</th><th>(original)</th></tr>
-      {things.map((row, idx) =>
-        <tr key={idx}>
-          <td>{row[0]}</td>
-          <td>{this.input(row[0], "low", row[1])}</td>
-          <td>{showFloatNicely(row[1])}</td>
-          <td>{this.input(row[0], "high", row[2])}</td>
-          <td>{showFloatNicely(row[2])}</td>
-        </tr>)
+      <tbody>
+        <tr>
+          <th>Variable</th>
+          <th>10% CI</th>
+          <th>(original)</th>
+          <th>90% CI</th>
+          <th>(original)</th>
+          <th>notes</th>
+        </tr>
+      </tbody>
+      {things.map((row, idx) => <DistributionRow key={idx} row={row} input={this.input}/>)
       }
     </Table>
   },
@@ -333,8 +336,8 @@ const CausePriApp = React.createClass({
           <div className="col-xs-4 results col-md-5">
             {this.renderResultsTab()}
           </div>
+        </div>
       </div>
-    </div>
     </div>;
   }
 });
@@ -342,9 +345,7 @@ const CausePriApp = React.createClass({
 const Table = React.createClass({
   render () {
     return <table className="table table-striped">
-      <tbody>
-        {this.props.children}
-      </tbody>
+      {this.props.children}
     </table>
   }
 })
@@ -362,3 +363,57 @@ function showFloatNicely(value) {
   }
   return value;
 }
+
+const ScalarRow = React.createClass({
+  getInitialState () {
+    return { showing: false };
+  },
+  toggleShow(e) {
+    this.setState({showing: !this.state.showing});
+    e.preventDefault();
+  },
+  render () {
+    var row = this.props.row;
+    return <tbody>
+      <tr>
+        <td>{row[0]}</td>
+        <td>{this.props.input(row[0], "value", row[1])}</td>
+        <td>{showFloatNicely(row[1])}</td>
+        <td>{row[2] &&
+          <a href="#" onClick={this.toggleShow}>
+            {this.state.showing ? "hide" : "show"}
+          </a>}
+        </td>
+      </tr>
+      {this.state.showing && <tr><td colSpan="4">{row[2]}</td></tr>}
+    </tbody>
+  }
+})
+
+const DistributionRow = React.createClass({
+  getInitialState () {
+    return { showing: false };
+  },
+  toggleShow(e) {
+    this.setState({showing: !this.state.showing});
+    e.preventDefault();
+  },
+  render () {
+    var row = this.props.row;
+    return <tbody>
+      <tr>
+        <td>{row[0]}</td>
+        <td>{this.props.input(row[0], "low", row[1])}</td>
+        <td>{showFloatNicely(row[1])}</td>
+        <td>{this.props.input(row[0], "high", row[2])}</td>
+        <td>{showFloatNicely(row[2])}</td>
+        <td>{row[3] &&
+          <a href="#" onClick={this.toggleShow}>
+            {this.state.showing ? "hide" : "show"}
+          </a>}
+        </td>
+      </tr>
+      {this.state.showing && <tr><td colSpan="6">{row[3]}</td></tr>}
+    </tbody>
+  }
+})
