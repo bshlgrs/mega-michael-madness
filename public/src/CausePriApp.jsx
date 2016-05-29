@@ -172,7 +172,7 @@ const CausePriApp = React.createClass({
 
   getInitialState() {
     return {
-      inputs: this.props.initialInputs,
+      inputs: JSON.parse(JSON.stringify(this.props.initialInputs)),
       dataResult: {},
       selectedTab: 0,
       showImportModal: false,
@@ -303,6 +303,12 @@ const CausePriApp = React.createClass({
     this.setState({ inputs: JSON.parse(data) })
   },
 
+  handleResetInputs(e) {
+    e.preventDefault();
+
+    this.setState({ inputs: this.props.initialInputs });
+  },
+
   render () {
     var tabs = this.allTabs();
 
@@ -319,11 +325,11 @@ const CausePriApp = React.createClass({
             <a className="navbar-brand" href="#">Cause prioritization app</a>
           </div>
           <div id="navbar" className="navbar-collapse collapse">
-            <ul className="nav navbar-nav navbar-right">
+            {false &&<ul className="nav navbar-nav navbar-right">
               <li><a href="#">Menu</a></li>
               <li><a href="#">About</a></li>
               <li><a href="#">Help</a></li>
-            </ul>
+            </ul>}
             {false && <form className="navbar-form navbar-right">
               <input type="text" className="form-control" placeholder="Search..."/>
             </form>}
@@ -353,6 +359,10 @@ const CausePriApp = React.createClass({
               <li
                 onClick={this.importInputs}>
                 <a className="btn btn-default">Import/export</a>
+              </li>
+              <li
+                onClick={this.handleResetInputs}>
+                <a className="btn btn-default">Reset inputs</a>
               </li>
             </ul>
           </div>
@@ -485,14 +495,15 @@ const InputsImportModal = React.createClass({
         <p>Here's all your data. You can copy someone else's data in if you want.</p>
         <textarea rows="10" className="form-control" defaultValue={this.state.inputText} onChange={this.updateText}/>
 
-        <a
-          onClick={(e) => this.props.handleLoadInputs(e, this.state.inputText)}
-          className="btn btn-default">
-          Load into app
-        </a>
       </Modal.Body>
       <Modal.Footer>
-        <a className="btn btn-primary" onClick={this.props.close}>Close</a>
+        <a
+          onClick={(e) => this.props.handleLoadInputs(e, this.state.inputText)}
+          className="btn btn-default pull-left">
+          Load into app
+        </a>
+        <a className="btn btn-primary pull-right" onClick={this.props.close}>Close</a>
+
       </Modal.Footer>
     </Modal>;
   }
