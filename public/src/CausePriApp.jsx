@@ -68,24 +68,24 @@ const CausePriApp = React.createClass({
       <p>Let's sort out how good we think different beings' lives are, and how much we care about them.</p>
 
       {this.simpleScalarsTable([
-        ["wealthy human well-being", 1],
-        ["developing-world human well-being", 0.6, "This is because blah blah blah blah."],
-        ["factory-farmed animal wellbeing", 6],
-        ["factory-farmed animal sentience adjustment", 0.3],
-        ["cage-free well-being improvement", 1],
-        ["wild vertebrate well-being", -2],
-        ["wild vertebrate sentience adjustment", 0.2],
-        ["insect well-being", 4],
-        ["insect sentience adjustment", 0.01],
-        ["hedonium well-being", 100],
-        ["hedonium brains per human brain", 1000000],
-        ["em well-being", 2],
-        ["ems per human brain", 1],
-        ["paperclip well-being", 0.1],
-        ["paperclips per human brain", 1],
-        ["dolorium well-being", -100],
-        ["dolorium brains per human brain", 1000000]
-      ])}
+          ["wealthy human well-being", 1, "Centered around 1 by definition"],
+          ["developing-world human well-being", 0.6, "Extremely poor people's lives are about half as good as those in the developed world according to world happiness surveys."],
+          ["factory-farmed animal wellbeing", 10, "I am willing to trade maybe 10 years normal life vs. 1 year on factory farm."],
+          ["factory-farmed animal sentience adjustment", 0.3, "This does not include fish/shellfish."],
+          ["cage-free well-being improvement", 1],
+          ["wild vertebrate well-being", -2],
+          ["wild vertebrate sentience adjustment", 0.2],
+          ["insect well-being", 4],
+          ["insect sentience adjustment", 0.01],
+          ["hedonium well-being", 100, "For the same energy requirements as a human brain."],
+          ["hedonium brains per human brain", 1000000],
+          ["em well-being", 2, "Basically humans but with less suffering."],
+          ["ems per human brain", 1],
+          ["paperclip well-being", 0.1],
+          ["paperclips per human brain", 1],
+          ["dolorium well-being", -100],
+          ["dolorium brains per human brain", 1000000]
+      ])} 
     </div>
   },
 
@@ -93,33 +93,27 @@ const CausePriApp = React.createClass({
     return <div>
       <h3>Far future</h3>
 
-      <p>How conditionally likely are all these outcomes?</p>
+          <p>How conditionally likely are all these outcomes? (See notes for conditions)</p>
 
-      <p>
-        Michael, can you explain how to interpret these?
-        I don't know which ones are conditional on which other ones.
-      </p>
-
-      {this.simpleScalarsTable([
-        ["P(stay on earth)",0.2],
-        ["P(we reduce WAS on balance)",0.7],
-        ["P(fill universe with biology)",0.4],
-        ["P(society doesn't care about animals)",0.8],
-        ["P(we have factory farming)",0.2],
-        ["P(we spread WAS)",0.4],
-        ["P(we make suffering simulations)",0.3],
-        ["P(fill universe with computers)",0.4],
-        ["P(hedonium)",0.05],
-        ["P(ems)",0.3],
-        ["P(paperclip)",0.649],
-        ["P(dolorium)",0.001]
+      {this.simpleScalarsTable([ 
+          ["P(stay on earth)",0.2],
+          ["P(we reduce WAS on balance)",0.7,"conditional on staying one earth"],
+          ["P(fill universe with biology)",0.4],
+          ["P(society doesn't care about animals)",0.8,"conditional on filling universe with biology"],
+          ["P(we have factory farming)",0.2,"conditional on society doesn't care about animals"],
+          ["P(we spread WAS)",0.4,"conditional on society doesn't care about animals"],
+          ["P(we make suffering simulations)",0.3,"conditional on society doesn't care about animals"],
+          ["P(fill universe with computers)",0.4],
+          ["P(hedonium)",0.05,"conditional on filling the universe with computers"],
+          ["P(ems)",0.3,"conditional on filling the universe with computers"],
+          ["P(paperclip)",0.649,"conditional on filling the universe with computers"],
+          ["P(dolorium)",0.001,"conditional on filling the universe with computers"]
       ])}
 
       <p>What is the far future like?</p>
 
-
       {this.simpleDistributionsTable([
-       ["years of future",1e11,1e12,"THIS IS MY CITATION"],
+       ["years of future",1e11,1e12],
        ["accessible stars by computers",1e11,1e14],
        ["usable wattage per star",1e20,1e25],
        ["brains per watt",0.1,0.1],
