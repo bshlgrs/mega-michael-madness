@@ -23,7 +23,7 @@
 #define NUM_BUCKETS 1000
 #define STEP 1.25
 #define EXP_OFFSET 100
-#define NORMAL_90TH_PERCENTILE 1.2815515655
+#define GAUSSIAN_90TH_PERCENTILE 1.2815515655
 
 enum class Type { buckets, lognorm };
 

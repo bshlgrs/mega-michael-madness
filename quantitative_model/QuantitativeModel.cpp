@@ -50,7 +50,7 @@ public:
 Distribution CI(double lo, double hi)
 {
     double p_m = sqrt(lo * hi);
-    double p_s = sqrt(log(hi / lo) / log(10) / 2 / NORMAL_90TH_PERCENTILE);
+    double p_s = sqrt(log(hi / lo) / log(10) / 2 / GAUSSIAN_90TH_PERCENTILE);
     Distribution res(p_m, p_s);
     return res;
 }
@@ -270,8 +270,8 @@ int main(int argc, char *argv[])
         cout << "cage free estimate p_s^2," << pow(cage.p_s, 2) << endl;
         cout << "AI safety estimate p_m," << ai.p_m << endl;
         cout << "AI safety estimate p_s^2," << pow(ai.p_s, 2) << endl;
-        cout << "thl_posterior_direct," << prior.posterior(thl) << endl;
-        cout << "cage_free_posterior_direct," << prior.posterior(cage) << endl; // 2531
+        // cout << "thl_posterior_direct," << prior.posterior(thl) << endl;
+        // cout << "cage_free_posterior_direct," << prior.posterior(cage) << endl; // 2531
         cout << "AI_safety_posterior," << prior.posterior(ai) << endl;
         
     } catch (const char *msg) {

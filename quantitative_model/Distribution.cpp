@@ -337,7 +337,7 @@ double Distribution::variance()
 double Distribution::integrand(Distribution& measurement, int index, bool ev) const
 {
     double u = bucket_value(index);
-    double prior = this->get(index);
+    double prior = get(index);
     double update = 0;
     if (measurement.type == Type::buckets) {
         /* approximate `measurement` with log-normal dist */
