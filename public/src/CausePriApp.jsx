@@ -274,30 +274,55 @@ const CausePriApp = React.createClass({
     var tabs = this.allTabs();
 
     return <div>
-      <div>
-        <button
-          className="btn pull-right btn-primary"
-          onClick={this.submit}>
-          Calculate!
-        </button>
+      <nav className="navbar navbar-inverse navbar-fixed-top">
+        <div className="container-fluid">
+          <div className="navbar-header">
+            <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span className="sr-only">Toggle navigation</span>
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+            </button>
+            <a className="navbar-brand" href="#">Cause prioritization app</a>
+          </div>
+          <div id="navbar" className="navbar-collapse collapse">
+            <ul className="nav navbar-nav navbar-right">
+              <li><a href="#">Menu</a></li>
+              <li><a href="#">About</a></li>
+              <li><a href="#">Help</a></li>
+            </ul>
+            {false && <form className="navbar-form navbar-right">
+              <input type="text" className="form-control" placeholder="Search..."/>
+            </form>}
+          </div>
+        </div>
+      </nav>
 
-        <button
-          className="btn pull-right btn-default"
-          onClick={this.showModal}>
-          Save/load inputs
-        </button>
-        <ul className="nav nav-tabs">
-          {tabs.map((tab, idx) =>
-            <li role="presentation" key={idx} className={idx == this.state.selectedTab ? "active" : ""}>
-              <a href="#" onClick={() => this.handleTabChange(idx)}>
-                {tab[0]}
-              </a>
-            </li>
-          )}
-        </ul>
+      <div className="container-fluid">
+        <div className="row">
+          <div className="col-sm-3 col-md-2 sidebar">
+            <ul className="nav nav-sidebar">
+              {tabs.map((tab, idx) =>
+                <li role="presentation" key={idx} className={idx == this.state.selectedTab ? "active" : ""}>
+                  <a href="#" onClick={() => this.handleTabChange(idx)}>
+                    {tab[0]}
+                  </a>
+                </li>
+              )}
+            </ul>
 
-        {tabs[this.state.selectedTab][1]}
+            <button
+              className="btn btn-primary"
+              onClick={this.submit}>
+              Calculate!
+            </button>
+          </div>
+
+          <div className="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            {tabs[this.state.selectedTab][1]}
+          </div>
       </div>
+    </div>
     </div>;
   }
 });
