@@ -263,11 +263,15 @@ const CausePriApp = React.createClass({
         <tr>
           <th></th>
           <th>estimate</th>
-          <th>(original)</th>
+          {this.state.displayOriginalInputs && <th>(original)</th>}
           <th>notes</th>
         </tr>
       </tbody>
-      {things.map((row, idx) => <ScalarRow key={idx} row={row} input={this.input}/>)}
+      {things.map((row, idx) => <ScalarRow
+                key={idx}
+                row={row}
+                displayOriginalInputs={this.state.displayOriginalInputs}
+                input={this.input}/>)}
     </Table>
   },
 
@@ -277,13 +281,17 @@ const CausePriApp = React.createClass({
         <tr>
           <th></th>
           <th>10% CI</th>
-          <th>(original)</th>
+          {this.state.displayOriginalInputs && <th>(original)</th>}
           <th>90% CI</th>
-          <th>(original)</th>
+          {this.state.displayOriginalInputs && <th>(original)</th>}
           <th>notes</th>
         </tr>
       </tbody>
-      {things.map((row, idx) => <DistributionRow key={idx} row={row} input={this.input}/>)
+      {things.map((row, idx) => <DistributionRow
+        key={idx}
+        row={row}
+        input={this.input}
+        displayOriginalInputs={this.state.displayOriginalInputs} />)
       }
     </Table>
   },
@@ -311,6 +319,11 @@ const CausePriApp = React.createClass({
     e.preventDefault();
 
     this.setState({ inputs: JSON.parse(JSON.stringify(this.props.initialInputs)) });
+  },
+
+  toggleDisplayOriginalInputs(e) {
+    this.setState({ displayOriginalInputs: !this.state.displayOriginalInputs });
+    e.preventDefault();
   },
 
   render () {
@@ -369,6 +382,12 @@ const CausePriApp = React.createClass({
                 <a className="btn btn-default">Reset inputs</a>
               </li>
             </ul>
+
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" onChange={this.toggleDisplayOriginalInputs}/> Display original inputs
+              </label>
+            </div>
           </div>
 
           <div className="visible-xs-block">
@@ -443,7 +462,7 @@ const ScalarRow = React.createClass({
       <tr>
         <td>{row[0]}</td>
         <td>{this.props.input(row[0], "value", row[1])}</td>
-        <td>{showFloatNicely(row[1])}</td>
+        {this.props.displayOriginalInputs && <td>{showFloatNicely(row[1])}</td>}
         <td>{row[2] &&
           <a href="#" onClick={this.toggleShow}>
             {this.state.showing ? "hide" : "show"}
@@ -469,9 +488,9 @@ const DistributionRow = React.createClass({
       <tr>
         <td>{row[0]}</td>
         <td>{this.props.input(row[0], "low", row[1])}</td>
-        <td>{showFloatNicely(row[1])}</td>
+        {this.props.displayOriginalInputs && <td>{showFloatNicely(row[1])}</td>}
         <td>{this.props.input(row[0], "high", row[2])}</td>
-        <td>{showFloatNicely(row[2])}</td>
+        {this.props.displayOriginalInputs && <td>{showFloatNicely(row[2])}</td>}
         <td>{row[3] &&
           <a href="#" onClick={this.toggleShow}>
             {this.state.showing ? "hide" : "show"}
