@@ -29,13 +29,6 @@ const CausePriApp = React.createClass({
     </div>
   },
 
-  componentDidMount() {
-    if (globalInputs) {
-      this.setState({inputs: globalInputs});
-      globalInputs = null;
-    }
-  },
-
   renderResultsTab() {
     return <div>
       <h3>Main results</h3>
@@ -175,6 +168,14 @@ const CausePriApp = React.createClass({
 
   componentWillMount() {
     setTimeout(() => this.submit(), 1000);
+  },
+
+  componentDidMount() {
+    if (globalInputs) {
+      this.setState({inputs: globalInputs, defaultInputs: JSON.parse(JSON.stringify(globalInputs))});
+      this.refs.inputModal.updateTextToString(JSON.stringify(globalInputs));
+      globalInputs = null;
+    }
   },
 
   getInitialState() {
@@ -330,7 +331,7 @@ const CausePriApp = React.createClass({
   handleResetInputs(e) {
     e.preventDefault();
 
-    this.setState({ inputs: JSON.parse(JSON.stringify(this.props.initialInputs)) });
+    this.setState({ inputs: JSON.parse(JSON.stringify(this.state.defaultInputs)) });
   },
 
   toggleDisplayOriginalInputs(e) {
@@ -384,14 +385,14 @@ const CausePriApp = React.createClass({
                 onClick={this.submit}>
                 <a className="btn btn-primary">Calculate!</a>
               </li>
-              {false && <li
+              <li
                 onClick={this.importInputs}>
                 <a className="btn btn-default">Import/export</a>
-              </li>}
-              {false && <li
+              </li>
+              <li
                 onClick={this.handleResetInputs}>
                 <a className="btn btn-default">Reset inputs</a>
-              </li>}
+              </li>
             </ul>
 
             <div className="checkbox">
@@ -430,7 +431,8 @@ const CausePriApp = React.createClass({
         show={this.state.showImportModal}
         close={this.closeInputImporter}
         handleLoadInputs={this.handleLoadInputs}
-        inputText={JSON.stringify(this.state.inputs)}/>
+        inputText={JSON.stringify(this.state.inputs)}
+        ref="inputModal"/>
     </div>;
   }
 });
@@ -508,8 +510,14 @@ const DistributionRow = React.createClass({
 })
 
 const InputsImportModal = React.createClass({
+  componentWillMount () {
+    console.log("mounting inputs")
+  },
   getInitialState () {
     return { inputText: this.props.inputText };
+  },
+  updateTextToString(string) {
+    this.setState({inputText: string});
   },
   updateText (e) {
     this.setState({inputText: e.target.value});
@@ -522,7 +530,6 @@ const InputsImportModal = React.createClass({
       <Modal.Body>
         <p>Here's all your data. You can copy someone else's data in if you want.</p>
         <textarea rows="10" className="form-control" value={this.state.inputText} onChange={this.updateText}/>
-
       </Modal.Body>
       <Modal.Footer>
         <a
