@@ -187,6 +187,8 @@ const CausePriApp = React.createClass({
     this.setState({
       inputs: inputs
     });
+
+    this.refs.inputModal.updateTextToString(JSON.stringify(this.state.inputs));
   },
 
   submit () {
