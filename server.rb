@@ -37,10 +37,10 @@ post '/eval' do
 
   magic_number = Random.rand
 
-  File.write("input#{magic_number}", input_to_program.join("\n"))
+  File.write("/tmp/input#{magic_number}", input_to_program.join("\n"))
 
-  res = `./quantitative_model/a.out input#{magic_number}`
-  `rm "input#{magic_number}"`
+  res = `./quantitative_model/a.out /tmp/input#{magic_number}`
+  `rm "tmp/input#{magic_number}"`
   json(handle_data_lines(res.split("\n")))
 end
 
