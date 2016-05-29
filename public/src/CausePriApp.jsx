@@ -21,11 +21,9 @@ const CausePriApp = React.createClass({
     return <div>
       <h3>Cause prioritization app</h3>
 
-      <p>This is a paragraph.</p>
+      <p>I will add instruction here at some point.</p>
 
-      <p>This is another paragraph!</p>
-
-      <p>I'd write instructions for using this, but I know no-one will read them, so I won't bother</p>
+      <p>See http://mdickens.me/2016/05/17/a_complete_quantitative_model_for_cause_selection/</p>
     </div>
   },
 
