@@ -15,11 +15,6 @@ const CausePriApp = React.createClass({
     ]
   },
 
-  componentWillMount() {
-    setTimeout(() => this.submit(), 100);
-  },
-
-
   renderIntroTab() {
     return <div>
       <h3>Cause prioritization app</h3>
@@ -171,13 +166,17 @@ const CausePriApp = React.createClass({
 
 
 
+  componentWillMount() {
+    setTimeout(() => this.submit(), 1000);
+  },
 
   getInitialState() {
     return {
       inputs: this.props.initialInputs,
       dataResult: {},
       selectedTab: 0,
-      showImportModal: false
+      showImportModal: false,
+      calculating: true
     }
   },
 
