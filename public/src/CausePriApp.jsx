@@ -64,9 +64,7 @@ const CausePriApp = React.createClass({
         </tbody>
       </Table>
 
-      <p>This is a paragraph.</p>
-
-      <p>By the way, the far future has value {this.output("EV of far future", "value")}.</p>
+      <p><strong>Value of the far future:</strong> {this.output("EV of far future", "value")}</p>
     </div>
   },
 
