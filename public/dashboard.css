@@ -120,3 +120,8 @@ body {
   padding: 0px;
   height: initial;
 }
+
+.side-buttons button {
+  display: block;
+  margin-top: 10px;
+}
