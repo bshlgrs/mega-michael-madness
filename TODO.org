@@ -1,0 +1,16 @@
+* Features
+** TODO Allow outcome distributions to be both positive and negative
+
+It may be better to use as a two-sided log-normal distribution (i.e. a regular log-normal distribution combined with the same distribution flipped over the Y axis). Unclear about the details.
+** TODO Break down effects on factory-farmed animals into multiple categories for different types of animals
+
+Might be overcomplicated and not worth it
+** TODO Write function to sum multiple distributions where you specify at runtime which are positive or negative
+** More comprehensively list plausible far-future outcomes
+*** TODO Competitive ems that outcompete humans
+see http://www.nickbostrom.com/fut/evolution.html
+*** TODO Somehow account for unpredictable outcomes
+* Refactor
+** TODO For posterior, represent estimate as buckets instead of converting to lognormal distribution, which loses accuracy
+* Bugs
+No known bugs right now. Yay!
