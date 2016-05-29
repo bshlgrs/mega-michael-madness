@@ -8,14 +8,18 @@ const CausePriApp = React.createClass({
     return [
       ["Main", this.renderMainTab()],
       ["Globals", this.renderGlobalsTab()],
-      ["FarFuture", this.renderFarFutureTab()],
-      ["CageFree", this.renderCageFreeTab()]
+      ["Far Future", this.renderFarFutureTab()],
+      ["Cage Free", this.renderCageFreeTab()]
     ]
+  },
+
+  componentWillMount() {
+    setTimeout(() => this.submit(), 100);
   },
 
   renderMainTab() {
     return <div>
-      <h3>Main Tab</h3>
+      <h3>Results</h3>
 
       <Table>
         {this.firstTr(["Intervention", "Mean", "Variance", "posterior", "Notes"])}
@@ -170,8 +174,9 @@ const CausePriApp = React.createClass({
 
   submit () {
     var that = this;
+    this.setState({ calculating: true });
     $.post("/eval", { inputs: this.state.inputs }, function (e) {
-      that.setState({dataResult: e});
+      that.setState({ dataResult: e, calculating: false });
     });
   },
 
@@ -199,14 +204,45 @@ const CausePriApp = React.createClass({
 
   output(name, type) {
     console.log(name);
-    return <span>{this.state.dataResult[name] && this.state.dataResult[name][type || "value"] || "unknown"}</span>
+
+    if (this.state.calculating) {
+      return <i className="fa fa-spinner fa-spin"></i>
+    } else {
+      var value = this.state.dataResult[name] && this.state.dataResult[name][type || "value"]
+      if (value) {
+        if (value > 1000000) {
+          return <span>{value.toExponential()}</span>
+        } else {
+          return <span>{value}</span>
+        }
+      } else {
+        return <span>unknown</span>
+      }
+    }
   },
 
-  input(name, type, value) {
-    return <input
-      onChange={(e) => this.handleInputChange(e, name, type)}
-      value={this.state.inputs[name] && this.state.inputs[name][type] || value}
-      />
+  input(name, type, defaultValue) {
+    if (this.state.inputs[name]) {
+      if (this.state.inputs[name][type]) {
+        var value = this.state.inputs[name] && this.state.inputs[name][type]
+
+        if (value > 1000000) {
+          value = parseFloat(value).toExponential()
+        }
+      } else {
+        var value = ""
+      }
+    }
+
+    var invalid = isNaN(value) || value == "";
+
+    return <span>
+      <input
+        onChange={(e) => this.handleInputChange(e, name, type)}
+        value={typeof value !== "undefined" ? value : defaultValue}
+        />
+        {invalid && <i className="fa fa-warning fa-spin"></i>}
+      </span>
   },
 
   simpleScalarsTable(things) {
@@ -234,19 +270,22 @@ const CausePriApp = React.createClass({
     </Table>
   },
 
-
-
-
   render () {
     var tabs = this.allTabs();
 
     return <div>
       <div>
-          <button
-            className="btn pull-right btn-primary"
-            onClick={this.submit}>
-            Calculate!
-          </button>
+        <button
+          className="btn pull-right btn-primary"
+          onClick={this.submit}>
+          Calculate!
+        </button>
+
+        <button
+          className="btn pull-right btn-default"
+          onClick={this.showModal}>
+          Save/load inputs
+        </button>
         <ul className="nav nav-tabs">
           {tabs.map((tab, idx) =>
             <li role="presentation" key={idx} className={idx == this.state.selectedTab ? "active" : ""}>
