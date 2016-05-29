@@ -192,8 +192,12 @@ const CausePriApp = React.createClass({
   submit () {
     var that = this;
     this.setState({ calculating: true });
-    $.post("/eval", { inputs: this.state.inputs }, function (e) {
-      that.setState({ dataResult: e, calculating: false });
+    $.post("/eval", { inputs: this.state.inputs }, function (result) {
+      if (typeof result == "string") {
+        result = JSON.parse(result);
+      }
+
+      that.setState({ dataResult: result, calculating: false });
     });
   },
 
