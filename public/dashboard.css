@@ -115,3 +115,8 @@ body {
   top:51px;
   right:0px;
 }
+
+.number-input {
+  padding: 0px;
+  height: initial;
+}

@@ -223,11 +223,7 @@ const CausePriApp = React.createClass({
     } else {
       var value = this.state.dataResult[name] && this.state.dataResult[name][type || "value"]
       if (value) {
-        if (value > 1000000) {
-          return <span>{value.toExponential()}</span>
-        } else {
-          return <span>{value}</span>
-        }
+        return <span>{showFloatNicely(value)}</span>
       } else {
         return <span>unknown</span>
       }
@@ -237,11 +233,7 @@ const CausePriApp = React.createClass({
   input(name, type, defaultValue) {
     if (this.state.inputs[name]) {
       if (this.state.inputs[name][type]) {
-        var value = this.state.inputs[name] && this.state.inputs[name][type]
-
-        if (value > 1000000) {
-          value = parseFloat(value).toExponential()
-        }
+        var value = showFloatNicely(this.state.inputs[name] && this.state.inputs[name][type]);
       } else {
         var value = ""
       }
@@ -251,6 +243,7 @@ const CausePriApp = React.createClass({
 
     return <span>
       <input
+        className="form-control number-input"
         onChange={(e) => this.handleInputChange(e, name, type)}
         value={typeof value !== "undefined" ? value : defaultValue}
         />
@@ -260,11 +253,12 @@ const CausePriApp = React.createClass({
 
   simpleScalarsTable(things) {
     return <Table>
-      <tr><th>Variable</th><th>Estimate</th></tr>
+      <tr><th>Variable</th><th>Estimate</th><th>Original estimate</th></tr>
       {things.map((row, idx) =>
         <tr key={idx}>
           <td>{row[0]}</td>
           <td>{this.input(row[0], "value", row[1])}</td>
+          <td>{showFloatNicely(row[1])}</td>
         </tr>)
       }
     </Table>
@@ -272,12 +266,14 @@ const CausePriApp = React.createClass({
 
   simpleDistributionsTable(things) {
     return <Table>
-      <tr><th>Variable</th><th>10% CI</th><th>90% CI</th></tr>
+      <tr><th>Variable</th><th>10% CI</th><th>(original)</th><th>90% CI</th><th>(original)</th></tr>
       {things.map((row, idx) =>
         <tr key={idx}>
           <td>{row[0]}</td>
           <td>{this.input(row[0], "low", row[1])}</td>
+          <td>{showFloatNicely(row[1])}</td>
           <td>{this.input(row[0], "high", row[2])}</td>
+          <td>{showFloatNicely(row[2])}</td>
         </tr>)
       }
     </Table>
@@ -345,7 +341,7 @@ const CausePriApp = React.createClass({
 
 const Table = React.createClass({
   render () {
-    return <table className="table">
+    return <table className="table table-striped">
       <tbody>
         {this.props.children}
       </tbody>
@@ -359,3 +355,10 @@ $.getJSON("data.json", function(json) {
                     initialInputs={json.inputs}
                     initialOutputs={json.outputs} />, document.getElementById("app-holder"));
 });
+
+function showFloatNicely(value) {
+  if (value && value > 1000000) {
+    return parseFloat(value).toExponential()
+  }
+  return value;
+}
