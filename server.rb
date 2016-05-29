@@ -12,18 +12,6 @@ get '/' do
   File.open("public/index.html").read
 end
 
-get '/data.json' do
-  template = File.read("./model_display.md")
-
-  inputs = handle_data_lines(template.split("\n").select { |x| x[0] == "@" }.map { |x| x[1..-1]})
-
-  json({
-    outputs: get_default_outputs,
-    template: template,
-    inputs: inputs
-  })
-end
-
 post '/eval' do
   inputs = params["inputs"]
 
@@ -40,7 +28,7 @@ post '/eval' do
   File.write("/tmp/input#{magic_number}", input_to_program.join("\n"))
 
   res = `./quantitative_model/a.out /tmp/input#{magic_number}`
-  `rm "tmp/input#{magic_number}"`
+  `rm "/tmp/input#{magic_number}"`
   json(handle_data_lines(res.split("\n")))
 end
 

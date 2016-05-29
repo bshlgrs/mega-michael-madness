@@ -1,5 +1,7 @@
 var Modal = ReactBootstrap.Modal;
 
+
+
 const CausePriApp = React.createClass({
 
   // Michael -- You should only have to edit the code between here and the comment where I tell you to stop.
@@ -25,6 +27,13 @@ const CausePriApp = React.createClass({
 
       <p>I'd write instructions for using this, but I know no-one will read them, so I won't bother</p>
     </div>
+  },
+
+  componentDidMount() {
+    if (globalInputs) {
+      this.setState({inputs: globalInputs});
+      globalInputs = null;
+    }
   },
 
   renderResultsTab() {
@@ -164,15 +173,13 @@ const CausePriApp = React.createClass({
 
 
 
-
-
   componentWillMount() {
     setTimeout(() => this.submit(), 1000);
   },
 
   getInitialState() {
     return {
-      inputs: JSON.parse(JSON.stringify(this.props.initialInputs)),
+      inputs: {},
       dataResult: {},
       selectedTab: 0,
       showImportModal: false,
@@ -186,12 +193,13 @@ const CausePriApp = React.createClass({
 
     this.setState({
       inputs: inputs
-    })
+    });
   },
 
   submit () {
     var that = this;
     this.setState({ calculating: true });
+
     $.post("/eval", { inputs: this.state.inputs }, function (result) {
       if (typeof result == "string") {
         result = JSON.parse(result);
@@ -258,6 +266,8 @@ const CausePriApp = React.createClass({
   },
 
   simpleScalarsTable(things) {
+    globalInputs && things.map((row) => globalInputs[row[0]] = {type: "scalar", value: row[1]});
+
     return <Table>
       <tbody>
         <tr>
@@ -276,6 +286,8 @@ const CausePriApp = React.createClass({
   },
 
   simpleDistributionsTable(things) {
+    globalInputs && things.map((row) => globalInputs[row[0]] = {type: "ci", low: row[1], high: row[2]});
+
     return <Table>
       <tbody>
         <tr>
@@ -372,14 +384,14 @@ const CausePriApp = React.createClass({
                 onClick={this.submit}>
                 <a className="btn btn-primary">Calculate!</a>
               </li>
-              <li
+              {false && <li
                 onClick={this.importInputs}>
                 <a className="btn btn-default">Import/export</a>
-              </li>
-              <li
+              </li>}
+              {false && <li
                 onClick={this.handleResetInputs}>
                 <a className="btn btn-default">Reset inputs</a>
-              </li>
+              </li>}
             </ul>
 
             <div className="checkbox">
@@ -433,12 +445,6 @@ const Table = React.createClass({
   }
 })
 
-$.getJSON("data.json", function(json) {
-  ReactDOM.render(<CausePriApp
-                    template={json.template}
-                    initialInputs={json.inputs}
-                    initialOutputs={json.outputs} />, document.getElementById("app-holder"));
-});
 
 function showFloatNicely(value) {
   if (value && value > 1000000) {
@@ -515,7 +521,7 @@ const InputsImportModal = React.createClass({
       </Modal.Header>
       <Modal.Body>
         <p>Here's all your data. You can copy someone else's data in if you want.</p>
-        <textarea rows="10" className="form-control" defaultValue={this.state.inputText} onChange={this.updateText}/>
+        <textarea rows="10" className="form-control" value={this.state.inputText} onChange={this.updateText}/>
 
       </Modal.Body>
       <Modal.Footer>
@@ -530,3 +536,7 @@ const InputsImportModal = React.createClass({
     </Modal>;
   }
 })
+
+var globalInputs = {}
+
+ReactDOM.render(<CausePriApp/>, document.getElementById("app-holder"));
