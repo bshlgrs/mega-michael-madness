@@ -221,7 +221,7 @@ Table read_input(string filename)
     return table;
 }
 
-Distribution thl_estimate_direct(Table& table, const Distribution& prior)
+Distribution thl_estimate_direct(Table& table)
 {
 
     Distribution utility_estimate =
@@ -230,7 +230,7 @@ Distribution thl_estimate_direct(Table& table, const Distribution& prior)
     return  utility_estimate;
 }
 
-Distribution cage_free_estimate_direct(Table& table, const Distribution& prior)
+Distribution cage_free_estimate_direct(Table& table)
 {
     Distribution utility_estimate =
         table["cage-free total expenditures ($M)"].reciprocal()
@@ -243,6 +243,15 @@ Distribution cage_free_estimate_direct(Table& table, const Distribution& prior)
     return utility_estimate;
 }
 
+Distribution ai_safety_estimate(Table& table)
+{
+    return table["cost per AI researcher"].reciprocal()
+        * table["hours to solve AI safety"].reciprocal()
+        * table["hours per year per AI researcher"]
+        * 1000
+        * table["EV of far future"];
+}
+
 int main(int argc, char *argv[])
 {
     try {
@@ -252,16 +261,18 @@ int main(int argc, char *argv[])
 
         cout << "EV of far future," << table["EV of far future"].mean() << endl;
 
-        Distribution thl = thl_estimate_direct(table, prior);
-        Distribution cage = cage_free_estimate_direct(table, prior);
+        Distribution thl = thl_estimate_direct(table);
+        Distribution cage = cage_free_estimate_direct(table);
+        Distribution ai = ai_safety_estimate(table);
         cout << "THL estimate p_m," << thl.p_m << endl;
         cout << "THL estimate p_s^2," << pow(thl.p_s, 2) << endl;
         cout << "cage free estimate p_m," << cage.p_m << endl;
         cout << "cage free estimate p_s^2," << pow(cage.p_s, 2) << endl;
-        cout << "thl_posterior_direct," << prior.posterior(thl) << endl; // 194.8
+        cout << "AI safety estimate p_m," << ai.p_m << endl;
+        cout << "AI safety estimate p_s^2," << pow(ai.p_s, 2) << endl;
+        cout << "thl_posterior_direct," << prior.posterior(thl) << endl;
         cout << "cage_free_posterior_direct," << prior.posterior(cage) << endl; // 2531
-
-        cerr << "Done" << endl;
+        cout << "AI_safety_posterior," << prior.posterior(ai) << endl;
         
     } catch (const char *msg) {
         cerr << msg << endl;

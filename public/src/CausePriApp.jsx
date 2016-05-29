@@ -13,7 +13,8 @@ const CausePriApp = React.createClass({
       ["Intro", this.renderIntroTab()],
       ["Globals", this.renderGlobalsTab()],
       ["Far Future", this.renderFarFutureTab()],
-      ["Cage Free", this.renderCageFreeTab()]
+      ["Animals", this.renderAnimalsTab()],
+      ["AI Safety", this.renderAISafetyTab()]
     ]
   },
 
@@ -58,9 +59,10 @@ const CausePriApp = React.createClass({
 
       <Table>
         <tbody>
-          {this.firstTr(["Intervention", "Mean", "Variance", "posterior", "Notes"])}
-          {this.tr(["THL posterior", "$THL estimate p_m", "$THL estimate p_s^2", "$thl_posterior_direct", "this is a note"])}
-          {this.tr(["Cage free posterior", "$cage free estimate p_m", "$cage free estimate p_s^2", "$cage_free_posterior_direct", "this is also a note"])}
+          {this.firstTr(["Intervention", "Mean", "Variance", "Posterior", "Notes"])}
+          {this.tr(["THL posterior", "$THL estimate p_m", "$THL estimate p_s^2", "$thl_posterior_direct"])}
+          {this.tr(["Cage free posterior", "$cage free estimate p_m", "$cage free estimate p_s^2", "$cage_free_posterior_direct"])}
+          {this.tr(["AI safety posterior", "$AI safety estimate p_m", "$AI safety estimate p_s^2", "$AI_safety_posterior"])}
         </tbody>
       </Table>
 
@@ -105,7 +107,7 @@ const CausePriApp = React.createClass({
 
   renderFarFutureTab () {
     return <div>
-      <h3>Far future</h3>
+      <h3>Far Future</h3>
 
           <p>How conditionally likely are all these outcomes? (See notes for conditions)</p>
 
@@ -127,26 +129,33 @@ const CausePriApp = React.createClass({
       <p>What is the far future like?</p>
 
       {this.simpleDistributionsTable([
-       ["years of future",1e11,1e12],
-       ["accessible stars by computers",1e11,1e14],
-       ["usable wattage per star",1e20,1e25],
-       ["brains per watt",0.1,0.1],
-       ["accessible stars by biology",1e10,1e14],
+       ["years of future",1e11,1e12,"[2]"],
+       ["accessible stars by computers",1e11,1e14,"[3]"],
+       ["usable wattage per star",1e20,1e25,"[3]"],
+       ["brains per watt",0.1,0.1,"[3]"],
+       ["accessible stars by biology",1e10,1e14,"[3]"],
        ["humans per star",1e10,1e12],
        ["factory farmed animals per star",1e10,1e12],
-       ["wild vertebrates per star",1e13,1e16],
-       ["insects per star",1e17,1e21],
+       ["wild vertebrates per star",1e13,1e16,"[1]; assumes 1-10 planets per star"],
+       ["insects per star",1e17,1e21,"[1]"],
        ["simulations per insect",1e-3,1]
       ])}
+
+      <p>References</p>
+        <ol>
+        <li>Tomasik, "How Many Wild Animals Are There?" http://reducing-suffering.org/how-many-wild-animals-are-there/</li>
+        <li>Wikipedia, "Timeline of the Far Future" https://en.wikipedia.org/wiki/Timeline_of_the_far_future</li>
+        <li>Bradbury, "Matrioshka Brains" https://www.gwern.net/docs/1999-bradbury-matrioshkabrains.pdf</li>
+        </ol>
 
     </div>
   },
 
-  renderCageFreeTab() {
+  renderAnimalsTab() {
     return <div>
-      <h3>Cage-free</h3>
+      <h3>Animals</h3>
 
-      <p>Let's talk about cage free!</p>
+      <p>Let's talk about animal advocacy and cage free campaigns!</p>
 
       {this.simpleDistributionsTable([
         ["THL years factory farming prevented per $1000",700,13000],
@@ -156,6 +165,18 @@ const CausePriApp = React.createClass({
         ["proportion of change attributable to campaigns",0.7,1],
         ["cage-free years per cage prevented",1,1]
       ])}
+    </div>
+  },
+
+  renderAISafetyTab() {
+    return <div>
+    <h3>AI Safety</h3>
+
+    {this.simpleDistributionsTable([
+        ["cost per AI researcher",70000,150000],
+        ["hours to solve AI safety",1e6,1e10,"Perhaps this should follow Pareto dist? http://intelligence.org/files/PredictingAGI.pdf"],
+        ["hours per year per AI researcher",2000,2000]
+    ])}
     </div>
   },
 

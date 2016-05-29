@@ -45,3 +45,6 @@ years until cage-free would have happened anyway,5,10
 millions of cages prevented,100,150
 proportion of change attributable to campaigns,0.7,1
 cage-free years per cage prevented,1,1
+cost per AI researcher,70000,150000
+hours to solve AI safety,1e6,1e10
+hours per year per AI researcher,2000,2000

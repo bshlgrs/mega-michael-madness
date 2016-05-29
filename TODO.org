@@ -13,4 +13,4 @@ see http://www.nickbostrom.com/fut/evolution.html
 * Refactor
 ** TODO For posterior, represent estimate as buckets instead of converting to lognormal distribution, which loses accuracy
 * Bugs
-No known bugs right now. Yay!
+** TODO Posterior calculation fails for astronomical mean/variance
