@@ -21,9 +21,34 @@ const CausePriApp = React.createClass({
     return <div>
       <h3>Cause prioritization app</h3>
 
-      <p>I will add instruction here at some point.</p>
+        <p>
+          <a href="http://mdickens.me/2016/04/06/expected_value_estimates_you_can_%28maybe%29_take_literally/">
+            Quantitative models offer a superior approach in determining which interventions to support.</a> However,
+          naive cost-effectiveness estimates <a
+          href="http://blog.givewell.org/2011/08/18/why-we-cant-take-expected-value-estimates-literally-even-when-theyre-unbiased/"> have
+          big problems</a>. In particular:
+        </p>
 
-      <p>See http://mdickens.me/2016/05/17/a_complete_quantitative_model_for_cause_selection/</p>
+        <ol>
+          <li>They don’t give stronger consideration to more robust estimates.</li>
+          <li>They don’t always account for all relevant factors.</li>
+        </ol>
+
+      <p>This is an implementation of <a
+        href="http://mdickens.me/2016/05/17/a_complete_quantitative_model_for_cause_selection/">Michael Dickens' attempt</a> to buid a quantitative model for cause selection which
+          does not have these limitations.</p>
+
+      <p>The model makes estimates by using expected-value calculations to produce probability distributions of utility values. It then uses these
+        estimates as evidence to update a prior over the effectiveness of different interventions. Treating estimates as evidence updating a prior means
+        that interventions with more robust evidence of effectiveness have better posteriors.</p>
+
+      <p>This version is not entirely implemented yet, but is more convenient to use than the original spreadsheet model.</p>
+
+      <p>You can use this app to see the results of the model given various input assumptions. You can see
+        different inputs by clicking on the tabs in the sidebar. After editing them, you can click the "Calculate" button
+        to see how your changed inputs affect the result.</p>
+
+      <p>This version was implemented by Michael Dickens and Buck Shlegeris.</p>
     </div>
   },
 
@@ -76,7 +101,7 @@ const CausePriApp = React.createClass({
           ["paperclips per human brain", 1],
           ["dolorium well-being", -100],
           ["dolorium brains per human brain", 1000000]
-      ])} 
+      ])}
     </div>
   },
 
@@ -86,7 +111,7 @@ const CausePriApp = React.createClass({
 
           <p>How conditionally likely are all these outcomes? (See notes for conditions)</p>
 
-      {this.simpleScalarsTable([ 
+      {this.simpleScalarsTable([
           ["P(stay on earth)",0.2],
           ["P(we reduce WAS on balance)",0.7,"conditional on staying one earth"],
           ["P(fill universe with biology)",0.4],
