@@ -64,133 +64,147 @@ Distribution CI(double singleton)
     return CI(singleton, singleton);
 }
 
-void set_globals(Table& table)
+void set_globals(Table& t)
 {
-    table["utility per wealthy human"] =
-        table["wealthy human well-being"];
-    table["utility per developing-world human"] =
-        table["developing-world human well-being"];
-    table["utility per factory-farmed animal"] =
-        table["factory-farmed animal wellbeing"]
-        * table["factory-farmed animal sentience adjustment"];
-    table["utility per cage removed"] =
-        table["cage-free well-being improvement"]
-        * table["factory-farmed animal sentience adjustment"];
-    table["utility per wild vertebrate"] =
-        table["wild vertebrate well-being"]
-        * table["wild vertebrate sentience adjustment"];
-    table["utility per insect"] =
-        table["insect well-being"]
-        * table["insect sentience adjustment"];
-    table["utility per hedonium"] =
-        table["hedonium well-being"]
-        * table["hedonium brains per human brain"];
-    table["utility per em"] =
-        table["em well-being"]
-        * table["ems per human brain"];
-    table["utility per paperclip"] =
-        table["paperclip well-being"]
-        * table["paperclips per human brain"];
-    table["utility per dolorium"] =
-        table["dolorium well-being"]
-        * table["dolorium brains per human brain"];
+    t["utility per wealthy human"] =
+        t["wealthy human well-being"];
+    t["utility per developing-world human"] =
+        t["developing-world human well-being"];
+    t["utility per factory-farmed animal"] =
+        t["factory-farmed animal wellbeing"]
+        * t["factory-farmed animal sentience adjustment"];
+    t["utility per cage removed"] =
+        t["cage-free well-being improvement"]
+        * t["factory-farmed animal sentience adjustment"];
+    t["utility per wild vertebrate"] =
+        t["wild vertebrate well-being"]
+        * t["wild vertebrate sentience adjustment"];
+    t["utility per insect"] =
+        t["insect well-being"]
+        * t["insect sentience adjustment"];
+    t["utility per hedonium"] =
+        t["hedonium well-being"]
+        * t["hedonium brains per human brain"];
+    t["utility per em"] =
+        t["em well-being"]
+        * t["ems per human brain"];
+    t["utility per paperclip"] =
+        t["paperclip well-being"]
+        * t["paperclips per human brain"];
+    t["utility per dolorium"] =
+        t["dolorium well-being"]
+        * t["dolorium brains per human brain"];
 
-    table["computer brains in far future"] =
-        table["accessible stars by computers"]
-        * table["years of future"]
-        * table["usable wattage per star"]
-        * table["brains per watt"];
-    table["biology star-years in far future"] =
-        table["accessible stars by biology"]
-        * table["years of future"];
+    t["computer brains in far future"] =
+        t["accessible stars by computers"]
+        * t["years of future"]
+        * t["usable wattage per star"]
+        * t["brains per watt"];
+    t["biology star-years in far future"] =
+        t["accessible stars by biology"]
+        * t["years of future"];
 }
 
-void set_EV_far_future(Table& table)
+void set_EV_far_future(Table& t)
 {
-    table["P(humans exist)"] = table["P(fill universe with biology)"];
-    table["P(hedonium exists)"] =
-        table["P(fill universe with computers)"] * table["P(hedonium)"];
-    table["P(ems exist)"] =
-        table["P(fill universe with computers)"] * table["P(ems)"];
+    t["P(humans exist)"] = t["P(fill universe with biology)"];
+    t["P(hedonium exists)"] =
+        t["P(fill universe with computers)"] * t["P(hedonium)"];
+    t["P(ems exist)"] =
+        t["P(fill universe with computers)"] * t["P(ems)"];
 
-    table["human weighted utility"] =
-        table["P(humans exist)"]
-        * table["utility per wealthy human"]
-        * table["humans per star"]
-        * table["biology star-years in far future"];
-    table["hedonium weighted utility"] =
-        table["P(hedonium exists)"]
-        * table["utility per hedonium"]
-        * table["computer brains in far future"];
-    table["em weighted utility"] =
-        table["P(ems exist)"]
-        * table["utility per em"]
-        * table["computer brains in far future"];
+    t["human weighted utility"] =
+        t["P(humans exist)"]
+        * t["utility per wealthy human"]
+        * t["humans per star"]
+        * t["biology star-years in far future"];
+    t["hedonium weighted utility"] =
+        t["P(hedonium exists)"]
+        * t["utility per hedonium"]
+        * t["computer brains in far future"];
+    t["em weighted utility"] =
+        t["P(ems exist)"]
+        * t["utility per em"]
+        * t["computer brains in far future"];
 
-    table["pos EV of far future"] =
-        table["human weighted utility"]
-        + table["hedonium weighted utility"]
-        + table["em weighted utility"];
+    t["pos EV of far future"] =
+        t["human weighted utility"]
+        + t["hedonium weighted utility"]
+        + t["em weighted utility"];
     
-    table["P(factory farming exists)"] =
-        table["P(fill universe with biology)"]
-        * table["P(society doesn't care about animals)"]
-        * table["P(we have factory farming)"];
-    table["P(wild vertebrates exist)"] =
-        table["P(fill universe with biology)"]
-        * table["P(society doesn't care about animals)"]
-        * table["P(we spread WAS)"];
-    table["P(insects exist)"] = table["P(wild vertebrates exist)"];
-    table["P(simulations exist)"] =
-        table["P(fill universe with biology)"]
-        * table["P(society doesn't care about animals)"]
-        * table["P(we make suffering simulations)"];
-    table["P(paperclips exist)"] =
-        table["P(fill universe with computers)"] * table["P(paperclip)"];
-    table["P(dolorium exists)"] =
-        table["P(fill universe with computers)"] * table["P(dolorium)"];
+    t["P(factory farming exists)"] =
+        t["P(fill universe with biology)"]
+        * t["P(society doesn't care about animals)"]
+        * t["P(we have factory farming)"];
+    t["P(wild vertebrates exist)"] =
+        t["P(fill universe with biology)"]
+        * t["P(society doesn't care about animals)"]
+        * t["P(we spread WAS)"];
+    t["P(insects exist)"] = t["P(wild vertebrates exist)"];
+    t["P(simulations exist)"] =
+        t["P(fill universe with biology)"]
+        * t["P(society doesn't care about animals)"]
+        * t["P(we make suffering simulations)"];
+    t["P(paperclips exist)"] =
+        t["P(fill universe with computers)"] * t["P(paperclip)"];
+    t["P(dolorium exists)"] =
+        t["P(fill universe with computers)"] * t["P(dolorium)"];
 
-    table["factory farming weighted utility"] =
-        table["P(factory farming exists)"]
-        * table["utility per factory-farmed animal"]
-        * table["biology star-years in far future"]
-        * table["factory farmed animals per star"];
-    table["wild vertebrate weighted utility"] =
-        table["P(wild vertebrates exist)"]
-        * table["utility per wild vertebrate"]
-        * table["biology star-years in far future"]
-        * table["wild vertebrates per star"];
-    table["insect weighted utility"] =
-        table["P(insects exist)"]
-        * table["utility per insect"]
-        * table["biology star-years in far future"]
-        * table["insects per star"];
-    table["simulation weighted utility"] =
-        table["P(simulations exist)"]
-        * table["utility per insect"]
-        * table["simulations per insect"]
-        * table["biology star-years in far future"]
-        * table["insects per star"];
-    table["paperclip weighted utility"] =
-        table["P(paperclips exist)"]
-        * table["utility per paperclip"]
-        * table["computer brains in far future"];
-    table["dolorium weighted utility"] =
-        table["P(dolorium exists)"]
-        * table["utility per dolorium"]
-        * table["computer brains in far future"];
+    t["factory farming weighted utility"] =
+        t["P(factory farming exists)"]
+        * t["utility per factory-farmed animal"]
+        * t["biology star-years in far future"]
+        * t["factory farmed animals per star"];
+    t["wild vertebrate weighted utility"] =
+        t["P(wild vertebrates exist)"]
+        * t["utility per wild vertebrate"]
+        * t["biology star-years in far future"]
+        * t["wild vertebrates per star"];
+    t["insect weighted utility"] =
+        t["P(insects exist)"]
+        * t["utility per insect"]
+        * t["biology star-years in far future"]
+        * t["insects per star"];
+    t["simulation weighted utility"] =
+        t["P(simulations exist)"]
+        * t["utility per insect"]
+        * t["simulations per insect"]
+        * t["biology star-years in far future"]
+        * t["insects per star"];
+    t["paperclip weighted utility"] =
+        t["P(paperclips exist)"]
+        * t["utility per paperclip"]
+        * t["computer brains in far future"];
+    t["dolorium weighted utility"] =
+        t["P(dolorium exists)"]
+        * t["utility per dolorium"]
+        * t["computer brains in far future"];
 
-    table["neg EV of far future"] =
-        table["factory farming weighted utility"]
-        + table["wild vertebrate weighted utility"]
-        + table["insect weighted utility"]
-        + table["simulation weighted utility"]
-        + table["paperclip weighted utility"]
-        + table["dolorium weighted utility"];
+    t["neg EV of far future"] =
+        t["factory farming weighted utility"]
+        + t["wild vertebrate weighted utility"]
+        + t["insect weighted utility"]
+        + t["simulation weighted utility"]
+        + t["paperclip weighted utility"]
+        + t["dolorium weighted utility"];
 
-    table["EV of far future"] =
-        table["pos EV of far future"]
-        - table["neg EV of far future"];
+    t["EV of far future"] =
+        t["pos EV of far future"]
+        - t["neg EV of far future"];
+    
+    t["weighted utility of values spreading"] = 
+        t["hedonium scenarios caused by changing values"]
+        * t["hedonium weighted utility"]
+        + t["dolorium scenarios prevented by changing values"]
+        * t["dolorium weighted utility"]
+        + t["factory farming scenarios prevented by changing values"]
+        * t["factory farming weighted utility"]
+        + t["wild vertebrate suffering prevented by changing values"]
+        * t["wild vertebrate weighted utility"]
+        + t["insect suffering prevented by changing values"]
+        * t["insect weighted utility"]
+        + t["suffering simulations prevented by changing values"]
+        * t["simulation weighted utility"];
 }
 
 /*
@@ -203,7 +217,7 @@ Table read_input(string filename)
 {
     bool WARN_ABOUT_MISSING_KEYS_SAVED = WARN_ABOUT_MISSING_KEYS; WARN_ABOUT_MISSING_KEYS = false;
 
-    Table table;
+    Table t;
     ifstream file(filename);
     string key, comments, low_CI, high_CI;
 
@@ -217,133 +231,137 @@ Table read_input(string filename)
         getline(file, low_CI, ',');
         getline(file, high_CI);
         if (key.length()) {
-            table[key] = CI(stof(low_CI), stof(high_CI));
+            t[key] = CI(stof(low_CI), stof(high_CI));
         }
     }
 
-    set_globals(table);
-    set_EV_far_future(table);
+    set_globals(t);
+    set_EV_far_future(t);
 
     WARN_ABOUT_MISSING_KEYS = WARN_ABOUT_MISSING_KEYS_SAVED;
-    return table;
+    return t;
 }
 
-Distribution veg_estimate_direct(Table& table)
+Distribution veg_estimate_direct(Table& t)
 {
 
     Distribution utility_estimate =
-        table["years factory farming prevented per $1000"]
-        * table["utility per factory-farmed animal"];
+        t["years factory farming prevented per $1000"]
+        * t["utility per factory-farmed animal"];
     return utility_estimate;
 }
 
 /* Estimates the effect of veg advocacy on the far future. */
-Distribution veg_estimate_ff(Table& table)
+Distribution veg_estimate_ff_old(Table& t)
 {
-    table["veg-years per $1000"] =
-        table["vegetarians per $1000"]
-        * table["years spent being vegetarian"];
-    table["veg-years directly created per $1000"] =
-        table["veg-years per $1000"]
-        * table["interest rate"];
-    table["veg-years indirectly created per $1000"] =
-        table["veg-years per $1000"]
-        * table["annual rate at which vegetarians convert new vegetarians"];
-    table["veg-years permanently created per $1000"] =
-        table["veg-years directly created per $1000"]
-        + table["veg-years indirectly created per $1000"];
+    t["veg-years per $1000"] =
+        t["vegetarians per $1000"]
+        * t["years spent being vegetarian"];
+    t["veg-years directly created per $1000"] =
+        t["veg-years per $1000"]
+        * t["interest rate"];
+    t["veg-years indirectly created per $1000"] =
+        t["veg-years per $1000"]
+        * t["annual rate at which vegetarians convert new vegetarians"];
+    t["veg-years permanently created per $1000"] =
+        t["veg-years directly created per $1000"]
+        + t["veg-years indirectly created per $1000"];
 
     /* You have to define this last because C++ is stupid */
-    auto helper = [table](Distribution prop, Distribution utility)
+    auto helper = [t](Distribution prop, Distribution utility)
         mutable -> Distribution
     {
         return prop
         * utility
-        * table["memetically relevant humans"].reciprocal()
-        * table["veg-years permanently created per $1000"];
+        * t["memetically relevant humans"].reciprocal()
+        * t["veg-years permanently created per $1000"];
     };
     
-    return helper(CI(1), table["factory farming weighted utility"])
-        + helper(table["wild vertebrate suffering prevented if we end factory farming"],
-                 table["wild vertebrate weighted utility"])
-        + helper(table["insect suffering prevented"],
-                 table["insect weighted utility"])
-        + helper(table["suffering simulations prevented"],
-                 table["simulation weighted utility"])
-        + helper(table["hedonium caused"],
-                 table["hedonium weighted utility"]);
+    return helper(CI(1), t["factory farming weighted utility"])
+        + helper(t["wild vertebrate suffering prevented if we end factory farming"],
+                 t["wild vertebrate weighted utility"])
+        + helper(t["insect suffering prevented"],
+                 t["insect weighted utility"])
+        + helper(t["suffering simulations prevented"],
+                 t["simulation weighted utility"])
+        + helper(t["hedonium caused"],
+                 t["hedonium weighted utility"]);
 }
 
-Distribution cage_free_estimate_direct(Table& table)
+/* Estimates the effect of veg advocacy on the far future. */
+Distribution veg_estimate_ff(Table& t)
+{
+     t["veg-years per $1000"] =
+        t["vegetarians per $1000"]
+        * t["years spent being vegetarian"];
+    t["veg-years directly created per $1000"] =
+        t["veg-years per $1000"]
+        * t["interest rate"];
+    t["veg-years indirectly created per $1000"] =
+        t["veg-years per $1000"]
+        * t["annual rate at which vegetarians convert new vegetarians"];
+    t["veg-years permanently created per $1000"] =
+        t["veg-years directly created per $1000"]
+        + t["veg-years indirectly created per $1000"];
+
+    return
+        t["weighted utility of values spreading"]
+        * t["memetically relevant humans"].reciprocal()
+        * t["veg-years permanently created per $1000"];
+}
+
+Distribution cage_free_estimate_direct(Table& t)
 {
     Distribution utility_estimate =
-        table["cage-free total expenditures ($M)"].reciprocal()
-        * table["years until cage-free would have happened anyway"]
-        * table["millions of cages prevented"]
-        * table["proportion of change attributable to campaigns"]
-        * table["cage-free years per cage prevented"]
-        * table["utility per cage removed"]
+        t["cage-free total expenditures ($M)"].reciprocal()
+        * t["years until cage-free would have happened anyway"]
+        * t["millions of cages prevented"]
+        * t["proportion of change attributable to campaigns"]
+        * t["cage-free years per cage prevented"]
+        * t["utility per cage removed"]
         * 1000;
     return utility_estimate;
 }
 
-Distribution ai_safety_model_1(Table& table)
+Distribution ai_safety_model_1(Table& t)
 {
-    return table["P(AI-related extinction)"]
-        * table["size of FAI community when AGI created"].reciprocal()
-        * table["AI researcher multiplicative effect"]
-        * table["proportion of bad scenarios averted by doubling total research"]
-        * table["cost per AI researcher"].reciprocal()
+    return t["P(AI-related extinction)"]
+        * t["size of FAI community when AGI created"].reciprocal()
+        * t["AI researcher multiplicative effect"]
+        * t["proportion of bad scenarios averted by doubling total research"]
+        * t["cost per AI researcher"].reciprocal()
         * 1000;
 }
 
-Distribution ai_safety_model_2(Table& table)
+Distribution ai_safety_model_2(Table& t)
 {
-    return table["cost per AI researcher"].reciprocal()
-        * table["hours to solve AI safety"].reciprocal()
-        * table["hours per year per AI researcher"]
+    return t["cost per AI researcher"].reciprocal()
+        * t["hours to solve AI safety"].reciprocal()
+        * t["hours per year per AI researcher"]
         * 1000
-        * table["EV of far future"];
+        * t["EV of far future"];
 }
 
-Distribution ai_safety_estimate(Table& table)
+Distribution ai_safety_estimate(Table& t)
 {
-    double divisor = table["Model 1 weight"].p_m + table["Model 2 weight"].p_m;
-    return (ai_safety_model_1(table) * table["Model 1 weight"].p_m
-            + ai_safety_model_2(table) * table["Model 2 weight"].p_m)
+    double divisor = t["Model 1 weight"].p_m + t["Model 2 weight"].p_m;
+    return (ai_safety_model_1(t) * t["Model 1 weight"].p_m
+            + ai_safety_model_2(t) * t["Model 2 weight"].p_m)
         * (1 / divisor);
 }
 
-Distribution targeted_values_spreading_estimate(Table& table)
+Distribution targeted_values_spreading_estimate(Table& t)
 {
-    table["increased probability AGI is good for animals per $1000 spent"] =
-        table["P(friendly AI gets built)"]
-        * table["P(friendly AI is bad for animals by default)"]
-        * table["P(AI researchers' values matter)"]
-        * table["number of AI researchers when AGI created"].reciprocal()
-        * table["values propagation multiplier"]
-        * table["cost to convince one AI researcher to care about non-human minds ($)"].reciprocal()
+    t["increased probability that AGI is good for animals per $1000 spent"] =
+        t["P(friendly AI gets built)"]
+        * t["P(AI researchers' values matter)"]
+        * t["number of AI researchers when AGI created"].reciprocal()
+        * t["values propagation multiplier"]
+        * t["cost to convince one AI researcher to care about non-human minds ($)"].reciprocal()
         * 1000;
 
-    auto helper = [table](Distribution prop, Distribution utility)
-        mutable -> Distribution
-    {
-        return prop * utility
-        * table["increased probability AGI is good for animals per $1000 spent"];
-    };
-
-    return helper(table["proportion of hedonium scenarios caused by changing the AI's values"],
-                  table["hedonium weighted utility"])
-        + helper(table["dolorium scenarios prevented"],
-                 table["dolorium weighted utility"])
-        + helper(table["factory farming scenarios prevented"],
-                 table["factory farming weighted utility"])
-        + helper(table["wild vertebrate suffering prevented"],
-                 table["wild vertebrate weighted utility"])
-        + helper(table["insect suffering prevented"],
-                 table["insect weighted utility"])
-        + helper(table["suffering simulations prevented"],
-                 table["simulation weighted utility"]);
+    return t["weighted utility of values spreading"]
+        * t["increased probability that AGI is good for animals per $1000 spent"];
 }
 
 void print_results(string name, Distribution prior, Distribution estimate)
@@ -357,25 +375,25 @@ void print_results(string name, Distribution prior, Distribution estimate)
 int main(int argc, char *argv[])
 {
     try {
-        Table table = read_input(argv[1]);
-        Distribution lognorm_prior(table["log-normal prior mu"].p_m,
-                                   table["log-normal prior sigma"].p_m);
+        Table t = read_input(argv[1]);
+        Distribution lognorm_prior(t["log-normal prior mu"].p_m,
+                                   t["log-normal prior sigma"].p_m);
         Distribution pareto_prior(
-           lomax_pdf(table["Pareto prior median"].p_m,
-                     table["Pareto prior alpha"].p_m));
-        Distribution prior = (lognorm_prior * table["log-normal weight"].p_m
-                              + pareto_prior * table["Pareto weight"].p_m)
-            * (1 / (table["log-normal weight"].p_m + table["Pareto weight"].p_m));
+           lomax_pdf(t["Pareto prior median"].p_m,
+                     t["Pareto prior alpha"].p_m));
+        Distribution prior = (lognorm_prior * t["log-normal weight"].p_m
+                              + pareto_prior * t["Pareto weight"].p_m)
+            * (1 / (t["log-normal weight"].p_m + t["Pareto weight"].p_m));
 
-        cout << "EV of far future," << table["EV of far future"].mean() << endl;
+        cout << "EV of far future," << t["EV of far future"].mean() << endl;
 
-        Distribution gd = table["GiveDirectly"];
-        Distribution dtw = table["Deworm the World"];
-        Distribution veg = veg_estimate_direct(table);
-        Distribution veg_ff = veg_estimate_ff(table);
-        Distribution cage = cage_free_estimate_direct(table);
-        Distribution ai = ai_safety_estimate(table);
-        Distribution tvs = targeted_values_spreading_estimate(table);
+        Distribution gd = t["GiveDirectly"];
+        Distribution dtw = t["Deworm the World"];
+        Distribution veg = veg_estimate_direct(t);
+        Distribution veg_ff = veg_estimate_ff(t);
+        Distribution cage = cage_free_estimate_direct(t);
+        Distribution ai = ai_safety_estimate(t);
+        Distribution tvs = targeted_values_spreading_estimate(t);
 
         print_results("GiveDirectly", prior, gd);
         print_results("DtW", prior, dtw);

@@ -219,11 +219,19 @@ const CausePriApp = React.createClass({
         ["vegetarians per $1000",22,323,"Estimated by doubling the 80% CI for online ads from [2]."],
         ["years spent being vegetarian",5,8,"[2]"],
         ["annual rate at which vegetarians convert new vegetarians",0.005,0.03],
-        ["wild vertebrate suffering prevented if we end factory farming",0.01,0.2,"as proportion of total suffering"],
-        ["insect suffering prevented",0.005,0.1],
-        ["suffering simulations prevented",0.01,0.2],
-        ["hedonium caused",0.01,0.05],
       ])}
+
+      <p>How would values spreading affect far-future values?</p>
+
+      {this.simpleDistributionsTable([
+        ["factory farming scenarios prevented by changing values",1,1,"Recall that this is conditional on the probabilities given in the far future tab, including P(society doesn't care about animals) and P(we spread factory farming). Without conditioning on those, this value would be a lot lower."],
+        ["wild vertebrate suffering prevented by changing values",0.4,0.8,"As a proportion of total suffering (in expectation)."],
+        ["insect suffering prevented by changing values",0.2,0.4],
+        ["suffering simulations prevented by changing values",0.2,0.4],
+        ["hedonium scenarios caused by changing values",0.01,0.1],
+        ["dolorium scenarios prevented by changing values",0.001,0.001],
+      ])}
+
 
      <p>References</p>
      <ol>
@@ -309,17 +317,10 @@ const CausePriApp = React.createClass({
 
      {this.simpleDistributionsTable([
         ["P(friendly AI gets built)",0.1,0.5,"How should we think of a probability distribution over a probability? There's some sense in which some probability estimates are more precise than others. Maybe think of this as your confidence interval on what your probability estimate would be if you had better information."],
-        ["P(friendly AI is bad for animals by default)",0.2,0.8],
-        ["P(AI researchers' values matter)",0.1,0.6],
-        ["number of AI researchers when AGI created",5000,100000,"Different from size of AI safety community; presumably all AI researchers could matter. See https://intelligence.org/2014/01/28/how-big-is-ai/"],
-        ["values propagation multiplier",0.5,5,"If we change one researcher's values today, this many researchers' values will change by the time AGI is developed."],
+        ["P(AI researchers' values matter)",0.3,0.5,"Given that society doesn't care about animals, what's the probability that improving AI researchers' values will improve an AGI's values?"],
+        ["number of AI researchers when AGI created",20000,100000,"Different from size of AI safety community; presumably all AI researchers could matter. See https://intelligence.org/2014/01/28/how-big-is-ai/"],
+        ["values propagation multiplier",1,5,"If we change one researcher's values today, this many researchers' values will change by the time AGI is developed."],
         ["cost to convince one AI researcher to care about non-human minds ($)",1000,100000],
-        ["proportion of hedonium scenarios caused by changing the AI's values",0.01,0.05],
-        ["dolorium scenarios prevented",0.0001,0.0001],
-        ["factory farming scenarios prevented",1,1],
-        ["wild vertebrate suffering prevented",0.1,0.4],
-        ["insect suffering prevented",0.05,0.2],
-        ["suffering simulations prevented",0.05,0.2],
      ])}
 
      </div>
