@@ -25,7 +25,7 @@
 #define EXP_OFFSET 100
 #define GAUSSIAN_90TH_PERCENTILE 1.2815515655
 
-enum class Type { buckets, lognorm };
+enum class Type { empty, buckets, lognorm };
 
 class Distribution {
 private:
@@ -48,13 +48,11 @@ public:
     double p_m; /* exp(mu) */
     double p_s; /* base-10 sigma */
 
-    /* params for singleton */
-    double singleton_val;
-
     Distribution();
     Distribution(Type type);
     Distribution(double p_m, double p_s);
     Distribution(std::function<double(double)> pdf);
+    void check_empty() const;
     double operator[](int index) const;
     double get(int index) const;
     Distribution to_lognorm();

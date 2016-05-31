@@ -16,24 +16,20 @@ using namespace std;
 
 function<double(double)> lomax_pdf(double x_m, double alpha)
 {
-    return ([x_m, alpha](double x) -> double {
+    return [x_m, alpha](double x) -> double
+    {
         return alpha / x_m / pow(1 + x / x_m, alpha + 1);
-        });
+    };
 }
 
 function<double(double)> lognorm_pdf(double p_m, double p_s)
 {
     double mu = log(p_m);
     double s = log(10) * p_s;
-    return [mu, s](double x) -> double {
-        if (abs((log(x) - mu) / s) > 10) {
-            /* Manually handle case where x is many standard devations
-             * out, to prevent overflow */
-            return 0;
-        } else {
-            return 1 / (x * s * sqrt(2 * M_PI)) *
-                exp(-0.5 * pow((log(x) - mu) / s, 2));
-        }
+    return [mu, s](double x) -> double
+    {
+        return 1 / (x * s * sqrt(2 * M_PI)) *
+            exp(-0.5 * pow((log(x) - mu) / s, 2));
     };
 }
 
@@ -74,7 +70,7 @@ double get_delta(int index)
 /*
  * Default initialization as Buckets type.
  */
-Distribution::Distribution() : Distribution(Type::buckets) {}
+Distribution::Distribution() : Distribution(Type::empty) {}
 
 Distribution::Distribution(Type type) : buckets(NUM_BUCKETS, 0)
 {
@@ -103,6 +99,13 @@ Distribution::Distribution(function<double(double)> pdf) :
     }
 }
 
+void Distribution::check_empty() const
+{
+    if (type == Type::empty) {
+        cerr << "Warning: \"" << name << "\" is empty." << endl;
+    }
+}
+
 double Distribution::operator[](int index) const
 {
     return get(index);
@@ -123,9 +126,7 @@ Distribution Distribution::lognorm_from_mean_and_variance(
 {
     double p_m = mean / sqrt(1 + var / pow(mean, 2));
     double p_s = sqrt(log(1 + var / pow(mean, 2))) / log(10);
-    cerr << "p_m " << p_m << ", p_s^2 " << p_s * p_s << endl;
     Distribution res(p_m, p_s);
-    cerr << "mean " << res.mean() << endl;
     return res;
 }
 
@@ -181,6 +182,8 @@ void Distribution::half_sum(Distribution& res, const Distribution& other, int in
  */
 Distribution Distribution::operator+(const Distribution& other) const
 {
+    check_empty();
+    other.check_empty();
     Distribution res(Type::buckets);
 
     half_sum(res, other, 1);
@@ -193,7 +196,10 @@ Distribution Distribution::operator+(const Distribution& other) const
  * them as log-normal and then taking the difference of the log-normal
  * distributions.
  */
-Distribution Distribution::operator-(Distribution& other) {
+Distribution Distribution::operator-(Distribution& other)
+{
+    check_empty();
+    other.check_empty();
     if (type == Type::lognorm || other.type == Type::lognorm) {
         Distribution x = this->to_lognorm();
         Distribution y = other.to_lognorm();
@@ -221,6 +227,8 @@ Distribution Distribution::operator-(Distribution& other) {
  */
 Distribution Distribution::operator*(const Distribution& other) const
 {
+    check_empty();
+    other.check_empty();
     if (type == Type::lognorm
         && other.type == Type::lognorm) {
         double new_p_m = p_m * other.p_m;
@@ -252,6 +260,7 @@ Distribution Distribution::operator*(const Distribution& other) const
  */
 Distribution Distribution::operator*(double scalar) const
 {
+    check_empty();
     if (this->type == Type::lognorm) {
         Distribution res(p_m * scalar, p_s);
         return res;
@@ -283,6 +292,7 @@ Distribution Distribution::operator*(double scalar) const
  */
 Distribution Distribution::reciprocal()
 {
+    check_empty();
     if (this->type == Type::lognorm) {
         Distribution res(1 / p_m, p_s);
         return res;

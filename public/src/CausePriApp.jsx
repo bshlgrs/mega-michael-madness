@@ -12,8 +12,10 @@ const CausePriApp = React.createClass({
     return [
       ["Intro", this.renderIntroTab()],
       ["Globals", this.renderGlobalsTab()],
+      ["Basic Interventions", this.renderBasicsTab()],
       ["Far Future", this.renderFarFutureTab()],
-      ["Animals", this.renderAnimalsTab()],
+      ["Veg Advocacy", this.renderVegTab()],
+      ["Cage-Free", this.renderCageFreeTab()],
       ["AI Safety", this.renderAISafetyTab()]
     ]
   },
@@ -55,18 +57,31 @@ const CausePriApp = React.createClass({
 
   renderResultsTab() {
     return <div>
-      <h3>Main results</h3>
+      <h3>Direct effects</h3>
 
       <Table>
         <tbody>
-          {this.firstTr(["Intervention", "Mean", "Variance", "Posterior", "Notes"])}
-          {this.tr(["THL posterior", "$THL estimate p_m", "$THL estimate p_s^2", "$thl_posterior_direct"])}
-          {this.tr(["Cage free posterior", "$cage free estimate p_m", "$cage free estimate p_s^2", "$cage_free_posterior_direct"])}
-          {this.tr(["AI safety posterior", "$AI safety estimate p_m", "$AI safety estimate p_s^2", "$AI_safety_posterior"])}
+          {this.firstTr(["Intervention", "Mu", "Sigma", "Posterior"])}
+          {this.tr(["GiveDirectly", "$GiveDirectly estimate p_m", "$GiveDirectly estimate p_s", "$GiveDirectly posterior"])}
+          {this.tr(["Deworm the World", "$DtW estimate p_m", "$DtW estimate p_s", "$DtW posterior"])}
+          {this.tr(["Veg advocacy", "$veg estimate p_m", "$veg estimate p_s", "$veg posterior"])}
+          {this.tr(["Cage free", "$cage free estimate p_m", "$cage free estimate p_s", "$cage free posterior"])}
+        </tbody>
+      </Table>
+
+      <h3>Far future effects</h3>
+
+      <Table>
+        <tbody>
+          {this.firstTr(["Intervention", "Mu", "Sigma", "Posterior"])}
+          {this.tr(["AI safety", "$AI safety estimate p_m", "$AI safety estimate p_s", "$AI safety posterior"])}
+          {this.tr(["Veg advocacy", "$veg (ff) estimate p_m", "$veg (ff) estimate p_s", "$veg (ff) posterior"])}
         </tbody>
       </Table>
 
       <p><strong>Value of the far future:</strong> {this.output("EV of far future", "value")}</p>
+
+      <p>How are &mu; and &sigma; defined? Say we take the log base 10 of the distribution for an intervention. &mu; is the exponent of this distribution's mean, and &sigma; is its standard deviation. That means &sigma; tells you how the interventions vary in terms of orders of magnitude (so &sigma;=1 means the standard deviation is 1 order of magnitude).</p>
     </div>
   },
 
@@ -77,8 +92,14 @@ const CausePriApp = React.createClass({
       <p>Log normal prior parameters</p>
 
       {this.simpleScalarsTable([
-      ["log-normal prior mu",1],
-      ["log-normal prior sigma",0.75]
+      ["log-normal prior mu",0.1],
+      ["log-normal prior sigma",0.75],
+      ])}
+
+      <p>Next establish some basic facts.</p>
+      {this.simpleScalarsTable([
+        ["factory farmed animals",2e10],
+        ["interest rate",0.05],
       ])}
 
       <p>Let's sort out how good we think different beings' lives are, and how much we care about them.</p>
@@ -105,6 +126,25 @@ const CausePriApp = React.createClass({
     </div>
   },
 
+  renderBasicsTab () {
+    return <div>
+      <h3>Basic Interventions</h3>
+
+      {this.simpleDistributionsTable([
+         ["GiveDirectly",0.9,1.1,"[2]"],
+         ["Deworm the World",8,14,"[1][2]. GiveWell rates AMF more highly but I don't endorse the population ethics stance necessary to make AMF look that good (see [3])."],
+       ])}
+
+      <p>References</p>
+      <ol>
+        <li>GiveWell, "Deworm the World Initiative." http://www.givewell.org/international/top-charities/deworm-world-initiative</li>
+        <li>GiveWell, "GiveWell's Cost-Effectiveness Analyses." http://www.givewell.org/international/technical/criteria/cost-effectiveness/cost-effectiveness-models</li>
+        <li>Dickens, "GiveWell's Charity Recommendations Require Taking a Controversial Stance on Population Ethics." http://mdickens.me/2016/05/16/givewell's_charity_recommendations_require_taking_an_unusual_stance_on_population_ethics/</li>
+      </ol>
+      
+      </div>
+  },
+
   renderFarFutureTab () {
     return <div>
       <h3>Far Future</h3>
@@ -123,7 +163,7 @@ const CausePriApp = React.createClass({
           ["P(hedonium)",0.05,"conditional on filling the universe with computers"],
           ["P(ems)",0.3,"conditional on filling the universe with computers"],
           ["P(paperclip)",0.649,"conditional on filling the universe with computers"],
-          ["P(dolorium)",0.001,"conditional on filling the universe with computers"]
+          ["P(dolorium)",0.001,"conditional on filling the universe with computers"],
       ])}
 
       <p>What is the far future like?</p>
@@ -138,33 +178,66 @@ const CausePriApp = React.createClass({
        ["factory farmed animals per star",1e10,1e12],
        ["wild vertebrates per star",1e13,1e16,"[1]; assumes 1-10 planets per star"],
        ["insects per star",1e17,1e21,"[1]"],
-       ["simulations per insect",1e-3,1]
+       ["simulations per insect",1e-3,1],
       ])}
 
       <p>References</p>
         <ol>
         <li>Tomasik, "How Many Wild Animals Are There?" http://reducing-suffering.org/how-many-wild-animals-are-there/</li>
-        <li>Wikipedia, "Timeline of the Far Future" https://en.wikipedia.org/wiki/Timeline_of_the_far_future</li>
-        <li>Bradbury, "Matrioshka Brains" https://www.gwern.net/docs/1999-bradbury-matrioshkabrains.pdf</li>
+        <li>Wikipedia, "Timeline of the Far Future." https://en.wikipedia.org/wiki/Timeline_of_the_far_future</li>
+        <li>Bradbury, "Matrioshka Brains." https://www.gwern.net/docs/1999-bradbury-matrioshkabrains.pdf</li>
         </ol>
 
     </div>
   },
 
-  renderAnimalsTab() {
+  renderVegTab() {
     return <div>
-      <h3>Animals</h3>
+      <h3>Veg Advocacy</h3>
 
-      <p>Let's talk about animal advocacy and cage free campaigns!</p>
+      <p>Let's try to figure out if we should advocate for people to care more about farm animals.</p>
 
       {this.simpleDistributionsTable([
-        ["THL years factory farming prevented per $1000",700,13000],
-        ["cage-free total expenditures ($M)",2,3],
-        ["years until cage-free would have happened anyway",5,10],
-        ["millions of cages prevented",100,150],
-        ["proportion of change attributable to campaigns",0.7,1],
-        ["cage-free years per cage prevented",1,1]
+        ["years factory farming prevented per $1000",700,13000,"Estimated by doubling The Humane League's 80% CI from [1]. Excludes shellfish."],
+        ["memetically relevant humans",1e9,2e9],
+        ["vegetarians per $1000",22,323,"Estimated by doubling the 80% CI for online ads from [2]."],
+        ["years spent being vegetarian",5,8,"[2]"],
+        ["annual rate at which vegetarians convert new vegetarians",0.005,0.03],
+        ["wild vertebrate suffering prevented if we end factory farming",0.01,0.2,"as proportion of total suffering"],
+        ["insect suffering prevented",0.005,0.1],
+        ["suffering simulations prevented",0.01,0.2],
+        ["hedonium caused",0.01,0.05],
       ])}
+
+     <p>References</p>
+     <ol>
+        <li>Animal Charity Evaluators, "Impact Calculator." http://www.animalcharityevaluators.org/research/interventions/impact-calculator/</li>
+    <li>Animal Charity Evaluators, "ACE Leafleting / Online Ads Impact Spreadsheet." https://docs.google.com/spreadsheets/d/1YSkZDTWacpkmnZMdRsIMLuCOdIILNVmGTIQAomZDxD4</li>
+    </ol>
+    </div>
+  },
+
+  renderCageFreeTab() {
+    return <div>
+      <h3>Cage-Free</h3>
+
+      <p>Let's talk about cage free campaigns!</p>
+
+      {this.simpleDistributionsTable([
+        ["cage-free total expenditures ($M)",2,3,"Includes all money spent on cage-free campaigns."],
+        ["years until cage-free would have happened anyway",5,10,"[1]"],
+        ["millions of cages prevented",100,150,"[1]"],
+        ["proportion of change attributable to campaigns",0.7,1],
+        ["cage-free years per cage prevented",1,1,"[2]"],
+        ["values spreading effect of cage-free year relative to vegetarian-year",0.01,0.1,"I suspect this is fairly low because cage-free has weaker memetic effects than vegetarianism. Lewis Bollard disagrees, see comments [1]."],
+      ])}
+
+    <p>References</p>
+    <ol>
+        <li>Open Philanthropy Project, "Initial Grants to Support Cage-Free Reforms." http://www.openphilanthropy.org/blog/initial-grants-support-corporate-cage-free-reforms</li>
+        <li>United Egg Producers, "General US Stats." http://www.unitedegg.org/GeneralStats/default.cfm</li>
+    </ol>
+
     </div>
   },
 
