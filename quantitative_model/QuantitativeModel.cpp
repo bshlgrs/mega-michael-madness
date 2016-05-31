@@ -193,7 +193,7 @@ void set_EV_far_future(Table& t)
         - t["neg EV of far future"];
     
     t["weighted utility of values spreading"] = 
-        t["hedonium scenarios caused by changing values"]
+        (t["hedonium scenarios caused by changing values"]
         * t["hedonium weighted utility"]
         + t["dolorium scenarios prevented by changing values"]
         * t["dolorium weighted utility"]
@@ -204,7 +204,7 @@ void set_EV_far_future(Table& t)
         + t["insect suffering prevented by changing values"]
         * t["insect weighted utility"]
         + t["suffering simulations prevented by changing values"]
-        * t["simulation weighted utility"];
+         * t["simulation weighted utility"]).to_lognorm();
 }
 
 /*

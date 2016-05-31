@@ -148,7 +148,7 @@ const CausePriApp = React.createClass({
 
       {this.simpleDistributionsTable([
          ["GiveDirectly",0.9,1.1,"[2]"],
-         ["Deworm the World",5,20,"[1][2]. GiveWell rates AMF more highly but I don't endorse the population ethics stance necessary to make AMF look that good (see [3])."],
+         ["Deworm the World",5,20,"[1][2]. GiveWell rates AMF more highly but I don't endorse the population ethics stance necessary to make AMF look that good (see [3]), so I'm including DtW here as a \"best global poverty charity\"."],
        ])}
 
       <p>References</p>
@@ -221,7 +221,7 @@ const CausePriApp = React.createClass({
         ["annual rate at which vegetarians convert new vegetarians",0.005,0.03],
       ])}
 
-      <p>How would values spreading affect far-future values?</p>
+      <p>How would animal advocacy affect far-future values?</p>
 
       {this.simpleDistributionsTable([
         ["factory farming scenarios prevented by changing values",1,1,"Recall that this is conditional on the probabilities given in the far future tab, including P(society doesn't care about animals) and P(we spread factory farming). Without conditioning on those, this value would be a lot lower."],
@@ -318,9 +318,9 @@ const CausePriApp = React.createClass({
      {this.simpleDistributionsTable([
         ["P(friendly AI gets built)",0.1,0.5,"How should we think of a probability distribution over a probability? There's some sense in which some probability estimates are more precise than others. Maybe think of this as your confidence interval on what your probability estimate would be if you had better information."],
         ["P(AI researchers' values matter)",0.3,0.5,"Given that society doesn't care about animals, what's the probability that improving AI researchers' values will improve an AGI's values?"],
-        ["number of AI researchers when AGI created",20000,100000,"Different from size of AI safety community; presumably all AI researchers could matter. See https://intelligence.org/2014/01/28/how-big-is-ai/"],
+        ["number of AI researchers when AGI created",30000,100000,"Different from size of AI safety community; presumably all AI researchers could matter. See https://intelligence.org/2014/01/28/how-big-is-ai/"],
         ["values propagation multiplier",1,5,"If we change one researcher's values today, this many researchers' values will change by the time AGI is developed."],
-        ["cost to convince one AI researcher to care about non-human minds ($)",1000,100000],
+        ["cost to convince one AI researcher to care about non-human minds ($)",5000,50000],
      ])}
 
      </div>
@@ -456,9 +456,9 @@ const CausePriApp = React.createClass({
       <tbody>
         <tr>
           <th></th>
-          <th>estimate</th>
+          <th>Estimate</th>
           {this.state.displayOriginalInputs && <th>(original)</th>}
-          <th>notes</th>
+          <th>Notes</th>
         </tr>
       </tbody>
       {things.map((row, idx) => <ScalarRow
@@ -480,7 +480,7 @@ const CausePriApp = React.createClass({
           {this.state.displayOriginalInputs && <th>(original)</th>}
           <th>90% CI</th>
           {this.state.displayOriginalInputs && <th>(original)</th>}
-          <th>notes</th>
+          <th>Notes</th>
         </tr>
       </tbody>
       {things.map((row, idx) => <DistributionRow
