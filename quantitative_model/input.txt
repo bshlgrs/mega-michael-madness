@@ -1,0 +1,80 @@
+log-normal weight,1,1
+Pareto weight,0,0
+log-normal prior mu,0.1,0.1
+log-normal prior sigma,0.75,0.75
+Pareto prior median,0.1,0.1
+Pareto prior alpha,1.5,1.5
+factory farmed animals,20000000000,20000000000
+interest rate,0.05,0.05
+wealthy human well-being,1,1
+developing-world human well-being,0.6,0.6
+factory-farmed animal wellbeing,10,10
+factory-farmed animal sentience adjustment,0.3,0.3
+cage-free well-being improvement,1,1
+wild vertebrate well-being,-2,-2
+wild vertebrate sentience adjustment,0.2,0.2
+insect well-being,4,4
+insect sentience adjustment,0.01,0.01
+hedonium well-being,100,100
+hedonium brains per human brain,1000000,1000000
+em well-being,2,2
+ems per human brain,1,1
+paperclip well-being,0.1,0.1
+paperclips per human brain,1,1
+dolorium well-being,-100,-100
+dolorium brains per human brain,1000000,1000000
+GiveDirectly,0.9,1.1
+Deworm the World,5,20
+P(stay on earth),0.2,0.2
+P(we reduce WAS on balance),0.7,0.7
+P(fill universe with biology),0.4,0.4
+P(society doesn't care about animals),0.8,0.8
+P(we have factory farming),0.2,0.2
+P(we spread WAS),0.4,0.4
+P(we make suffering simulations),0.3,0.3
+P(fill universe with computers),0.4,0.4
+P(hedonium),0.05,0.05
+P(ems),0.3,0.3
+P(paperclip),0.649,0.649
+P(dolorium),0.001,0.001
+years of future,100000000000,1000000000000
+accessible stars by computers,100000000000,100000000000000
+usable wattage per star,100000000000000000000,1e+25
+brains per watt,0.1,0.1
+accessible stars by biology,10000000000,100000000000000
+humans per star,10000000000,1000000000000
+factory farmed animals per star,10000000000,1000000000000
+wild vertebrates per star,10000000000000,10000000000000000
+insects per star,100000000000000000,1e+21
+simulations per insect,0.001,1
+years factory farming prevented per $1000,700,13000
+memetically relevant humans,1000000000,2000000000
+vegetarians per $1000,22,323
+years spent being vegetarian,5,8
+annual rate at which vegetarians convert new vegetarians,0.005,0.03
+factory farming scenarios prevented by changing values,1,1
+wild vertebrate suffering prevented by changing values,0.4,0.8
+insect suffering prevented by changing values,0.2,0.4
+suffering simulations prevented by changing values,0.2,0.4
+hedonium scenarios caused by changing values,0.01,0.1
+dolorium scenarios prevented by changing values,0.001,0.001
+cage-free total expenditures ($M),2,3
+years until cage-free would have happened anyway,5,10
+millions of cages prevented,100,150
+proportion of change attributable to campaigns,0.7,1
+cage-free years per cage prevented,1,1
+values spreading effect of cage-free year relative to vegetarian-year,0.01,0.1
+Model 1 weight,0.5,0.5
+Model 2 weight,0.5,0.5
+cost per AI researcher,70000,150000
+P(AI-related extinction),0.03,0.3
+size of FAI community when AGI created,200,10000
+AI researcher multiplicative effect,1,3
+proportion of bad scenarios averted by doubling total research,0.1,0.7
+hours to solve AI safety,1000000,10000000000
+hours per year per AI researcher,2000,2000
+P(friendly AI gets built),0.1,0.5
+P(AI researchers' values matter),0.3,0.5
+number of AI researchers when AGI created,20000,100000
+values propagation multiplier,1,5
+cost to convince one AI researcher to care about non-human minds ($),1000,100000
