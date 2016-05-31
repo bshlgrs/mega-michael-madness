@@ -349,7 +349,7 @@ const CausePriApp = React.createClass({
 
 
   componentWillMount() {
-    setTimeout(() => this.submit(), 1000);
+    setTimeout(() => this.submit(), 10);
   },
 
   componentDidMount() {
@@ -421,7 +421,7 @@ const CausePriApp = React.createClass({
       return <i className="fa fa-spinner fa-spin"></i>
     } else {
       var value = this.state.dataResult[name] && this.state.dataResult[name][type || "value"]
-      if (value) {
+      if (value !== undefined) {
         return <span>{showFloatNicely(value)}</span>
       } else {
         return <span>unknown</span>
@@ -431,15 +431,14 @@ const CausePriApp = React.createClass({
 
   input(name, type, defaultValue) {
     if (this.state.inputs[name]) {
-      if (this.state.inputs[name][type]) {
-        var value = showFloatNicely(this.state.inputs[name] && this.state.inputs[name][type]);
+      if (this.state.inputs[name][type] !== undefined) {
+        var value = showFloatNicely(this.state.inputs[name][type]);
       } else {
         var value = ""
       }
     }
 
-    var invalid = isNaN(value) || value == "";
-
+    var invalid = isNaN(value) || value === "";
     return <span>
       <input
         className="form-control number-input"
@@ -634,7 +633,7 @@ const Table = React.createClass({
 
 
 function showFloatNicely(value) {
-  if (value && value > 1000000) {
+  if (value !== undefined && value > 1000000) {
     return parseFloat(value).toExponential()
   }
   return value;
