@@ -30,7 +30,9 @@ enum class Type { empty, buckets, lognorm };
 class Distribution {
 private:
     double cached_mean = 0;
+    double cached_variance = 0;
     bool is_mean_cached = false;
+    bool is_variance_cached = false;
     
     std::vector<double> prefix_sum() const;
     void half_sum(Distribution& res, const Distribution& other, int include_diagonal) const;

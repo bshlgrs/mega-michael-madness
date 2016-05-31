@@ -328,21 +328,27 @@ double Distribution::mean()
 
 double Distribution::variance()
 {
+    if (is_variance_cached) {
+        return cached_variance;
+    }
     if (!is_mean_cached) {
         mean();
     }
 
+    is_variance_cached = true;
     if (this->type == Type::lognorm) {
         /* see https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
         double sigma = log(10) * p_s;
-        return pow(cached_mean, 2) * (exp(pow(sigma, 2)) - 1);
+        cached_variance = pow(cached_mean, 2) * (exp(pow(sigma, 2)) - 1);
     } else {
         double sigma2 = 0;
         for (int i = 0; i < NUM_BUCKETS; i++) {
             sigma2 += pow(bucket_value(i), 2) * get(i) * get_delta(i);
         }
-        return sigma2 - pow(cached_mean, 2);
+        cached_variance = sigma2 - pow(cached_mean, 2);
     }
+
+    return cached_variance;
 }
 
 double Distribution::integrand(Distribution& measurement, int index, bool ev) const
