@@ -39,18 +39,13 @@ const CausePriApp = React.createClass({
         </ol>
 
       <p>This is an implementation of <a
-        href="http://mdickens.me/2016/05/17/a_complete_quantitative_model_for_cause_selection/">Michael Dickens' attempt</a> to buid a quantitative model for cause selection which
-          does not have these limitations.</p>
+        href="http://mdickens.me/2016/05/17/a_complete_quantitative_model_for_cause_selection/">Michael Dickens' attempt</a> to buid a quantitative model for cause selection which does not have these limitations.</p>
 
-      <p>The model makes estimates by using expected-value calculations to produce probability distributions of utility values. It then uses these
-        estimates as evidence to update a prior over the effectiveness of different interventions. Treating estimates as evidence updating a prior means
-        that interventions with more robust evidence of effectiveness have better posteriors.</p>
+      <p>The model makes estimates by using expected-value calculations to produce probability distributions of utility values. It then uses these estimates as evidence to update a prior over the effectiveness of different interventions. Treating estimates as evidence updating a prior means that interventions with more robust evidence of effectiveness have better posteriors.</p>
 
-      <p>This version is not entirely implemented yet, but is more convenient to use than the original spreadsheet model.</p>
+      <p>You can use this app to see the results of the model given various input assumptions. You can see different inputs by clicking on the tabs in the sidebar. After editing them, you can click the "Calculate" button to see how your changed inputs affect the result.</p>
 
-      <p>You can use this app to see the results of the model given various input assumptions. You can see
-        different inputs by clicking on the tabs in the sidebar. After editing them, you can click the "Calculate" button
-        to see how your changed inputs affect the result.</p>
+      <p>You can add new models by <a href="https://github.com/bshlgrs/mega-michael-madness">cloning the GitHub repo</a>.</p>
 
       <p>This version was implemented by Michael Dickens and Buck Shlegeris.</p>
     </div>
@@ -98,14 +93,14 @@ const CausePriApp = React.createClass({
           ["Pareto weight",0],
       ])}
 
-      <p>Log-normal prior parameters</p>
+      <p>Log-normal prior parameters.</p>
 
       {this.simpleScalarsTable([
           ["log-normal prior mu",0.1],
           ["log-normal prior sigma",0.75],
       ])}
 
-      <p>Pareto prior parameters</p>
+      <p>Pareto prior parameters.</p>
 
       {this.simpleScalarsTable([
           ["Pareto prior median",0.1],

@@ -75,6 +75,6 @@ hours to solve AI safety,1000000,10000000000
 hours per year per AI researcher,2000,2000
 P(friendly AI gets built),0.1,0.5
 P(AI researchers' values matter),0.3,0.5
-number of AI researchers when AGI created,20000,100000
+number of AI researchers when AGI created,30000,100000
 values propagation multiplier,1,5
-cost to convince one AI researcher to care about non-human minds ($),1000,100000
+cost to convince one AI researcher to care about non-human minds ($),5000,50000

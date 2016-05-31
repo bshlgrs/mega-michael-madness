@@ -312,15 +312,13 @@ Distribution veg_estimate_ff(Table& t)
 
 Distribution cage_free_estimate_direct(Table& t)
 {
-    Distribution utility_estimate =
-        t["cage-free total expenditures ($M)"].reciprocal()
+    return t["cage-free total expenditures ($M)"].reciprocal()
         * t["years until cage-free would have happened anyway"]
         * t["millions of cages prevented"]
         * t["proportion of change attributable to campaigns"]
         * t["cage-free years per cage prevented"]
         * t["utility per cage removed"]
         * 1000;
-    return utility_estimate;
 }
 
 Distribution ai_safety_model_1(Table& t)

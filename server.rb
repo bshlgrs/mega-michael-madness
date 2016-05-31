@@ -28,7 +28,7 @@ post '/eval' do
   File.write("/tmp/input#{magic_number}", input_to_program.join("\n"))
 
   res = `./quantitative_model/a.out /tmp/input#{magic_number}`
-  `rm "/tmp/input#{magic_number}"`
+  `mv -f /tmp/input#{magic_number} ./quantitative_model/input.txt`
   json(handle_data_lines(res.split("\n")))
 end
 
