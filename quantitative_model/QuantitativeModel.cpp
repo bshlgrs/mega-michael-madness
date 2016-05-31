@@ -269,6 +269,42 @@ Distribution veg_estimate_ff(Table& table)
                  table["hedonium weighted utility"]);
 }
 
+/* Estimates the effect of veg advocacy on the far future. */
+Distribution veg_estimate_ff(Table& table)
+{
+    table["veg-years per $1000"] =
+        table["vegetarians per $1000"]
+        * table["years spent being vegetarian"];
+    table["veg-years directly created per $1000"] =
+        table["veg-years per $1000"]
+        * table["interest rate"];
+    table["veg-years indirectly created per $1000"] =
+        table["veg-years per $1000"]
+        * table["annual rate at which vegetarians convert new vegetarians"];
+    table["veg-years permanently created per $1000"] =
+        table["veg-years directly created per $1000"]
+        + table["veg-years indirectly created per $1000"];
+
+    auto helper = [table](Distribution prop, Distribution utility)
+        mutable -> Distribution
+    {
+        return prop
+        * utility
+        * table["memetically relevant humans"].reciprocal()
+        * table["veg-years permanently created per $1000"];
+    };
+    
+    return helper(CI(1), table["factory farming weighted utility"])
+        + helper(table["wild vertebrate suffering prevented if we end factory farming"],
+                 table["wild vertebrate weighted utility"])
+        + helper(table["insect suffering prevented"],
+                 table["insect weighted utility"])
+        + helper(table["suffering simulations prevented"],
+                 table["simulation weighted utility"])
+        + helper(table["hedonium caused"],
+                 table["hedonium weighted utility"]);
+}
+
 Distribution cage_free_estimate_direct(Table& table)
 {
     Distribution utility_estimate =
@@ -293,8 +329,12 @@ Distribution ai_safety_estimate(Table& table)
 
 void print_results(string name, Distribution prior, Distribution estimate)
 {
+<<<<<<< HEAD
     estimate = estimate.to_lognorm(); // so p_m and p_s are well-defined
     cout << name << " estimate mean," << estimate.mean() << endl;
+=======
+    cout << name << " estimate p_m," << estimate.p_m << endl;
+>>>>>>> e9432e87b161076d91fa881da1730b5ee156052e
     cout << name << " estimate p_s," << estimate.p_s << endl;
     cout << name << " posterior," << prior.posterior(estimate) << endl;
 }
@@ -317,7 +357,11 @@ int main(int argc, char *argv[])
         print_results("GiveDirectly", prior, gd);
         print_results("DtW", prior, dtw);
         print_results("veg", prior, veg);
+<<<<<<< HEAD
         print_results("veg ff", prior, veg_ff);
+=======
+        print_results("veg (ff)", prior, veg_ff);
+>>>>>>> e9432e87b161076d91fa881da1730b5ee156052e
         print_results("cage free", prior, cage);
         print_results("AI safety", prior, ai);
         
