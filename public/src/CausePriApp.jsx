@@ -15,8 +15,9 @@ const CausePriApp = React.createClass({
       ["Basic Interventions", this.renderBasicsTab()],
       ["Far Future", this.renderFarFutureTab()],
       ["Veg Advocacy", this.renderVegTab()],
-      ["Cage-Free", this.renderCageFreeTab()],
-      ["AI Safety", this.renderAISafetyTab()]
+      ["Cage Free", this.renderCageFreeTab()],
+      ["AI Safety", this.renderAISafetyTab()],
+      ["Targeted Values Spreading", this.renderTargetedValuesSpreadingTab()],
     ]
   },
 
@@ -76,12 +77,13 @@ const CausePriApp = React.createClass({
           {this.firstTr(["Intervention", "Mean", "Sigma", "Posterior"])}
           {this.tr(["AI safety", "$AI safety estimate mean", "$AI safety estimate p_s", "$AI safety posterior"])}
           {this.tr(["Veg advocacy", "$veg ff estimate mean", "$veg ff estimate p_s", "$veg ff posterior"])}
+          {this.tr(["Targeted values spreading", "$TVS estimate mean", "$TVS estimate p_s", "$TVS posterior"])}
         </tbody>
       </Table>
 
       <p><strong>Value of the far future:</strong> {this.output("EV of far future", "value")}</p>
 
-      <p>&sigma; is defined as the standard deviation of the log base 10 of the distribution. That means &sigma; tells you how the interventions vary in terms of orders of magnitude--so &sigma;=1 means the standard deviation is 1 order of magnitude.</p>
+      <p>&sigma; gives the standard deviation of the log base 10 of the distribution. That means &sigma; tells you how the interventions vary in terms of orders of magnitude—so &sigma;=1 means the standard deviation is 1 order of magnitude.</p>
     </div>
   },
 
@@ -89,11 +91,25 @@ const CausePriApp = React.createClass({
     return <div>
       <h3>Globals</h3>
 
-      <p>Log normal prior parameters</p>
+      <p>Prior distribution weights: how much relative credence should we put in each prior distribution shape?</p>
 
       {this.simpleScalarsTable([
-      ["log-normal prior mu",0.1],
-      ["log-normal prior sigma",0.75],
+          ["log-normal weight",1],
+          ["Pareto weight",0],
+      ])}
+
+      <p>Log-normal prior parameters</p>
+
+      {this.simpleScalarsTable([
+          ["log-normal prior mu",0.1],
+          ["log-normal prior sigma",0.75],
+      ])}
+
+      <p>Pareto prior parameters</p>
+
+      {this.simpleScalarsTable([
+          ["Pareto prior median",0.1],
+          ["Pareto prior alpha",1.5],
       ])}
 
       <p>Next establish some basic facts.</p>
@@ -245,12 +261,68 @@ const CausePriApp = React.createClass({
     return <div>
     <h3>AI Safety</h3>
 
-    {this.simpleDistributionsTable([
-        ["cost per AI researcher",70000,150000],
-        ["hours to solve AI safety",1e6,1e10,"Perhaps this should follow Pareto dist? http://intelligence.org/files/PredictingAGI.pdf"],
-        ["hours per year per AI researcher",2000,2000]
+    <p>Model weights: how much relative credence should we put in each model?</p>
+
+    {this.simpleScalarsTable([
+        ["Model 1 weight",0.5],
+        ["Model 2 weight",0.5],
     ])}
+
+    <p>General</p>
+
+    {this.simpleDistributionsTable([
+        ["cost per AI researcher",70000,150000,"Some uncertainty here about how to account for counterfactuals; presumably AI safety researchers would do something high value otherwise"],
+    ])}
+
+    <p>Model 1 (taken from Global Priorities Project [4])</p>
+
+    {this.simpleDistributionsTable([
+        ["P(AI-related extinction)",0.03,0.3,"Estimated from [3]. CI for probability represents uncertainty about the estimate."],
+        ["size of FAI community when AGI created",200,10000,"[2]"],
+        ["AI researcher multiplicative effect",1,3,"If we add one new researcher now, there will be this many new researchers by the time AGI is developed."],
+        ["proportion of bad scenarios averted by doubling total research",0.1,0.7],
+    ])}
+
+    <p>Model 2</p>
+
+    {this.simpleDistributionsTable([
+        ["hours to solve AI safety",1e6,1e10,"Perhaps this should follow Pareto dist? [1]"],
+        ["hours per year per AI researcher",2000,2000],
+    ])}
+
+    
+    <p>References</p>
+    <ol>
+        <li>Machine Intelligence Research Institute, "Predicting AGI." http://intelligence.org/files/PredictingAGI.pdf</li>
+        <li>Machine Intelligence Research Institute, "How Big is the Field of Artificial Intelligence?" https://intelligence.org/2014/01/28/how-big-is-ai/</li>
+        <li>Future of Humanity Institute, "Global Catastrophic Risks Survey." http://www.fhi.ox.ac.uk/gcr-report.pdf</li>
+        <li>Global Priorities Project, "How much doe work in AI safety help the world?" http://globalprioritiesproject.org/2015/08/quantifyingaisafety/</li>
+    </ol>
     </div>
+  },
+
+  renderTargetedValuesSpreadingTab() {
+     return <div>
+     <h3>Targeted Values Spreading</h3>
+
+     How valuable is it to spread good values to AI researchers?
+
+     {this.simpleDistributionsTable([
+        ["P(friendly AI gets built)",0.1,0.5,"How should we think of a probability distribution over a probability? There's some sense in which some probability estimates are more precise than others. Maybe think of this as your confidence interval on what your probability estimate would be if you had better information."],
+        ["P(friendly AI is bad for animals by default)",0.2,0.8],
+        ["P(AI researchers' values matter)",0.1,0.6],
+        ["number of AI researchers when AGI created",5000,100000,"Different from size of AI safety community; presumably all AI researchers could matter. See https://intelligence.org/2014/01/28/how-big-is-ai/"],
+        ["values propagation multiplier",0.5,5,"If we change one researcher's values today, this many researchers' values will change by the time AGI is developed."],
+        ["cost to convince one AI researcher to care about non-human minds ($)",1000,100000],
+        ["proportion of hedonium scenarios caused by changing the AI's values",0.01,0.05],
+        ["dolorium scenarios prevented",0.0001,0.0001],
+        ["factory farming scenarios prevented",1,1],
+        ["wild vertebrate suffering prevented",0.1,0.4],
+        ["insect suffering prevented",0.05,0.2],
+        ["suffering simulations prevented",0.05,0.2],
+     ])}
+
+     </div>
   },
 
   //////// MICHAEL, DON'T EDIT BELOW THIS LINE.

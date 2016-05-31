@@ -19,4 +19,4 @@ Or figure out a better way to account for the fact that estimates tend to be too
 * Refactor
 ** TODO For posterior, represent estimate as buckets instead of converting to lognormal distribution, which loses accuracy
 * Bugs
-** TODO Posterior calculation fails for astronomical mean/variance
+** TODO Well-being signs are determined by the way calculations are done and don't change when you change the sign of the input

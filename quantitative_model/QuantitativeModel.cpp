@@ -193,10 +193,15 @@ void set_EV_far_future(Table& table)
         - table["neg EV of far future"];
 }
 
+/*
+ * Reads a list of confidence intervals into Distributions.
+ *
+ * Scalar values produce a log-normal distribution with p_m = <value>,
+ * p_s = 0; use Distribution::p_m to access the value of the scalar.
+*/
 Table read_input(string filename)
 {
-    bool WARN_ABOUT_MISSING_KEYS_SAVED = WARN_ABOUT_MISSING_KEYS;
-    WARN_ABOUT_MISSING_KEYS = false;
+    bool WARN_ABOUT_MISSING_KEYS_SAVED = WARN_ABOUT_MISSING_KEYS; WARN_ABOUT_MISSING_KEYS = false;
 
     Table table;
     ifstream file(filename);
@@ -269,42 +274,6 @@ Distribution veg_estimate_ff(Table& table)
                  table["hedonium weighted utility"]);
 }
 
-/* Estimates the effect of veg advocacy on the far future. */
-Distribution veg_estimate_ff(Table& table)
-{
-    table["veg-years per $1000"] =
-        table["vegetarians per $1000"]
-        * table["years spent being vegetarian"];
-    table["veg-years directly created per $1000"] =
-        table["veg-years per $1000"]
-        * table["interest rate"];
-    table["veg-years indirectly created per $1000"] =
-        table["veg-years per $1000"]
-        * table["annual rate at which vegetarians convert new vegetarians"];
-    table["veg-years permanently created per $1000"] =
-        table["veg-years directly created per $1000"]
-        + table["veg-years indirectly created per $1000"];
-
-    auto helper = [table](Distribution prop, Distribution utility)
-        mutable -> Distribution
-    {
-        return prop
-        * utility
-        * table["memetically relevant humans"].reciprocal()
-        * table["veg-years permanently created per $1000"];
-    };
-    
-    return helper(CI(1), table["factory farming weighted utility"])
-        + helper(table["wild vertebrate suffering prevented if we end factory farming"],
-                 table["wild vertebrate weighted utility"])
-        + helper(table["insect suffering prevented"],
-                 table["insect weighted utility"])
-        + helper(table["suffering simulations prevented"],
-                 table["simulation weighted utility"])
-        + helper(table["hedonium caused"],
-                 table["hedonium weighted utility"]);
-}
-
 Distribution cage_free_estimate_direct(Table& table)
 {
     Distribution utility_estimate =
@@ -318,7 +287,17 @@ Distribution cage_free_estimate_direct(Table& table)
     return utility_estimate;
 }
 
-Distribution ai_safety_estimate(Table& table)
+Distribution ai_safety_model_1(Table& table)
+{
+    return table["P(AI-related extinction)"]
+        * table["size of FAI community when AGI created"].reciprocal()
+        * table["AI researcher multiplicative effect"]
+        * table["proportion of bad scenarios averted by doubling total research"]
+        * table["cost per AI researcher"].reciprocal()
+        * 1000;
+}
+
+Distribution ai_safety_model_2(Table& table)
 {
     return table["cost per AI researcher"].reciprocal()
         * table["hours to solve AI safety"].reciprocal()
@@ -327,15 +306,51 @@ Distribution ai_safety_estimate(Table& table)
         * table["EV of far future"];
 }
 
+Distribution ai_safety_estimate(Table& table)
+{
+    double divisor = table["Model 1 weight"].p_m + table["Model 2 weight"].p_m;
+    return (ai_safety_model_1(table) * table["Model 1 weight"].p_m
+            + ai_safety_model_2(table) * table["Model 2 weight"].p_m)
+        * (1 / divisor);
+}
+
+Distribution targeted_values_spreading_estimate(Table& table)
+{
+    table["increased probability AGI is good for animals per $1000 spent"] =
+        table["P(friendly AI gets built)"]
+        * table["P(friendly AI is bad for animals by default)"]
+        * table["P(AI researchers' values matter)"]
+        * table["number of AI researchers when AGI created"].reciprocal()
+        * table["values propagation multiplier"]
+        * table["cost to convince one AI researcher to care about non-human minds ($)"].reciprocal()
+        * 1000;
+
+    auto helper = [table](Distribution prop, Distribution utility)
+        mutable -> Distribution
+    {
+        return prop * utility
+        * table["increased probability AGI is good for animals per $1000 spent"];
+    };
+
+    return helper(table["proportion of hedonium scenarios caused by changing the AI's values"],
+                  table["hedonium weighted utility"])
+        + helper(table["dolorium scenarios prevented"],
+                 table["dolorium weighted utility"])
+        + helper(table["factory farming scenarios prevented"],
+                 table["factory farming weighted utility"])
+        + helper(table["wild vertebrate suffering prevented"],
+                 table["wild vertebrate weighted utility"])
+        + helper(table["insect suffering prevented"],
+                 table["insect weighted utility"])
+        + helper(table["suffering simulations prevented"],
+                 table["simulation weighted utility"]);
+}
+
 void print_results(string name, Distribution prior, Distribution estimate)
 {
-<<<<<<< HEAD
-    estimate = estimate.to_lognorm(); // so p_m and p_s are well-defined
-    cout << name << " estimate mean," << estimate.mean() << endl;
-=======
-    cout << name << " estimate p_m," << estimate.p_m << endl;
->>>>>>> e9432e87b161076d91fa881da1730b5ee156052e
-    cout << name << " estimate p_s," << estimate.p_s << endl;
+    Distribution ln = estimate.to_lognorm(); // so p_m and p_s are well-defined
+    cout << name << " estimate mean," << ln.mean() << endl;
+    cout << name << " estimate p_s," << ln.p_s << endl;
     cout << name << " posterior," << prior.posterior(estimate) << endl;
 }
 
@@ -343,7 +358,14 @@ int main(int argc, char *argv[])
 {
     try {
         Table table = read_input(argv[1]);
-        Distribution prior(table["log-normal prior mu"].p_m, table["log-normal prior sigma"].p_m);
+        Distribution lognorm_prior(table["log-normal prior mu"].p_m,
+                                   table["log-normal prior sigma"].p_m);
+        Distribution pareto_prior(
+           lomax_pdf(table["Pareto prior median"].p_m,
+                     table["Pareto prior alpha"].p_m));
+        Distribution prior = (lognorm_prior * table["log-normal weight"].p_m
+                              + pareto_prior * table["Pareto weight"].p_m)
+            * (1 / (table["log-normal weight"].p_m + table["Pareto weight"].p_m));
 
         cout << "EV of far future," << table["EV of far future"].mean() << endl;
 
@@ -353,17 +375,15 @@ int main(int argc, char *argv[])
         Distribution veg_ff = veg_estimate_ff(table);
         Distribution cage = cage_free_estimate_direct(table);
         Distribution ai = ai_safety_estimate(table);
+        Distribution tvs = targeted_values_spreading_estimate(table);
 
         print_results("GiveDirectly", prior, gd);
         print_results("DtW", prior, dtw);
         print_results("veg", prior, veg);
-<<<<<<< HEAD
         print_results("veg ff", prior, veg_ff);
-=======
-        print_results("veg (ff)", prior, veg_ff);
->>>>>>> e9432e87b161076d91fa881da1730b5ee156052e
         print_results("cage free", prior, cage);
         print_results("AI safety", prior, ai);
+        print_results("TVS", prior, tvs);
         
     } catch (const char *msg) {
         cerr << msg << endl;

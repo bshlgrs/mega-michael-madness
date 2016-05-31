@@ -68,3 +68,6 @@ public:
 
     static Distribution lognorm_from_mean_and_variance(double mean, double var);
 };
+
+std::function<double(double)> lomax_pdf(double median, double alpha);
+std::function<double(double)> lognorm_pdf(double p_m, double p_s);

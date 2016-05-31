@@ -14,8 +14,9 @@
 
 using namespace std;
 
-function<double(double)> lomax_pdf(double x_m, double alpha)
+function<double(double)> lomax_pdf(double median, double alpha)
 {
+    double x_m = median / pow(2, 1.0 / alpha);
     return [x_m, alpha](double x) -> double
     {
         return alpha / x_m / pow(1 + x / x_m, alpha + 1);
