@@ -157,7 +157,7 @@ const CausePriApp = React.createClass({
         <li>GiveWell, "GiveWell's Cost-Effectiveness Analyses." http://www.givewell.org/international/technical/criteria/cost-effectiveness/cost-effectiveness-models</li>
         <li>Dickens, "GiveWell's Charity Recommendations Require Taking a Controversial Stance on Population Ethics." http://mdickens.me/2016/05/16/givewell's_charity_recommendations_require_taking_an_unusual_stance_on_population_ethics/</li>
       </ol>
-      
+
       </div>
   },
 
@@ -290,7 +290,7 @@ const CausePriApp = React.createClass({
         ["hours per year per AI researcher",2000,2000],
     ])}
 
-    
+
     <p>References</p>
     <ol>
         <li>Machine Intelligence Research Institute, "Predicting AGI." http://intelligence.org/files/PredictingAGI.pdf</li>
@@ -384,7 +384,7 @@ const CausePriApp = React.createClass({
     var that = this;
     this.setState({ calculating: true });
 
-    $.post("/eval", { inputs: this.state.inputs }, function (result) {
+    $.post("./eval", { inputs: this.state.inputs }, function (result) {
       if (typeof result == "string") {
         result = JSON.parse(result);
       }
