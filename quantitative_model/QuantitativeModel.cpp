@@ -294,7 +294,7 @@ Distribution ai_safety_estimate(Table& table)
 void print_results(string name, Distribution prior, Distribution estimate)
 {
     estimate = estimate.to_lognorm(); // so p_m and p_s are well-defined
-    cout << name << " estimate p_m," << estimate.p_m << endl;
+    cout << name << " estimate mean," << estimate.mean() << endl;
     cout << name << " estimate p_s," << estimate.p_s << endl;
     cout << name << " posterior," << prior.posterior(estimate) << endl;
 }

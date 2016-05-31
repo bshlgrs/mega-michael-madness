@@ -61,11 +61,11 @@ const CausePriApp = React.createClass({
 
       <Table>
         <tbody>
-          {this.firstTr(["Intervention", "Mu", "Sigma", "Posterior"])}
-          {this.tr(["GiveDirectly", "$GiveDirectly estimate p_m", "$GiveDirectly estimate p_s", "$GiveDirectly posterior"])}
-          {this.tr(["Deworm the World", "$DtW estimate p_m", "$DtW estimate p_s", "$DtW posterior"])}
-          {this.tr(["Veg advocacy", "$veg estimate p_m", "$veg estimate p_s", "$veg posterior"])}
-          {this.tr(["Cage free", "$cage free estimate p_m", "$cage free estimate p_s", "$cage free posterior"])}
+          {this.firstTr(["Intervention", "Mean", "Sigma", "Posterior"])}
+          {this.tr(["GiveDirectly", "$GiveDirectly estimate mean", "$GiveDirectly estimate p_s", "$GiveDirectly posterior"])}
+          {this.tr(["Deworm the World", "$DtW estimate mean", "$DtW estimate p_s", "$DtW posterior"])}
+          {this.tr(["Veg advocacy", "$veg estimate mean", "$veg estimate p_s", "$veg posterior"])}
+          {this.tr(["Cage free", "$cage free estimate mean", "$cage free estimate p_s", "$cage free posterior"])}
         </tbody>
       </Table>
 
@@ -73,15 +73,15 @@ const CausePriApp = React.createClass({
 
       <Table>
         <tbody>
-          {this.firstTr(["Intervention", "Mu", "Sigma", "Posterior"])}
-          {this.tr(["AI safety", "$AI safety estimate p_m", "$AI safety estimate p_s", "$AI safety posterior"])}
-          {this.tr(["Veg advocacy", "$veg ff estimate p_m", "$veg ff estimate p_s", "$veg ff posterior"])}
+          {this.firstTr(["Intervention", "Mean", "Sigma", "Posterior"])}
+          {this.tr(["AI safety", "$AI safety estimate mean", "$AI safety estimate p_s", "$AI safety posterior"])}
+          {this.tr(["Veg advocacy", "$veg ff estimate mean", "$veg ff estimate p_s", "$veg ff posterior"])}
         </tbody>
       </Table>
 
       <p><strong>Value of the far future:</strong> {this.output("EV of far future", "value")}</p>
 
-      <p>How are &mu; and &sigma; defined? Say we take the log base 10 of the distribution for an intervention. &mu; is the exponent of this distribution's mean, and &sigma; is its standard deviation. That means &sigma; tells you how the interventions vary in terms of orders of magnitude (so &sigma;=1 means the standard deviation is 1 order of magnitude).</p>
+      <p>&sigma; is defined as the standard deviation of the log base 10 of the distribution. That means &sigma; tells you how the interventions vary in terms of orders of magnitude--so &sigma;=1 means the standard deviation is 1 order of magnitude.</p>
     </div>
   },
 
@@ -132,7 +132,7 @@ const CausePriApp = React.createClass({
 
       {this.simpleDistributionsTable([
          ["GiveDirectly",0.9,1.1,"[2]"],
-         ["Deworm the World",8,14,"[1][2]. GiveWell rates AMF more highly but I don't endorse the population ethics stance necessary to make AMF look that good (see [3])."],
+         ["Deworm the World",5,20,"[1][2]. GiveWell rates AMF more highly but I don't endorse the population ethics stance necessary to make AMF look that good (see [3])."],
        ])}
 
       <p>References</p>
