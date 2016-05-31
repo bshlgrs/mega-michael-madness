@@ -75,7 +75,7 @@ const CausePriApp = React.createClass({
         <tbody>
           {this.firstTr(["Intervention", "Mu", "Sigma", "Posterior"])}
           {this.tr(["AI safety", "$AI safety estimate p_m", "$AI safety estimate p_s", "$AI safety posterior"])}
-          {this.tr(["Veg advocacy", "$veg (ff) estimate p_m", "$veg (ff) estimate p_s", "$veg (ff) posterior"])}
+          {this.tr(["Veg advocacy", "$veg ff estimate p_m", "$veg ff estimate p_s", "$veg ff posterior"])}
         </tbody>
       </Table>
 

@@ -229,7 +229,7 @@ Distribution veg_estimate_direct(Table& table)
     Distribution utility_estimate =
         table["years factory farming prevented per $1000"]
         * table["utility per factory-farmed animal"];
-    return  utility_estimate;
+    return utility_estimate;
 }
 
 /* Estimates the effect of veg advocacy on the far future. */
@@ -248,6 +248,7 @@ Distribution veg_estimate_ff(Table& table)
         table["veg-years directly created per $1000"]
         + table["veg-years indirectly created per $1000"];
 
+    /* You have to define this last because C++ is stupid */
     auto helper = [table](Distribution prop, Distribution utility)
         mutable -> Distribution
     {
@@ -292,6 +293,7 @@ Distribution ai_safety_estimate(Table& table)
 
 void print_results(string name, Distribution prior, Distribution estimate)
 {
+    estimate = estimate.to_lognorm(); // so p_m and p_s are well-defined
     cout << name << " estimate p_m," << estimate.p_m << endl;
     cout << name << " estimate p_s," << estimate.p_s << endl;
     cout << name << " posterior," << prior.posterior(estimate) << endl;
@@ -315,7 +317,7 @@ int main(int argc, char *argv[])
         print_results("GiveDirectly", prior, gd);
         print_results("DtW", prior, dtw);
         print_results("veg", prior, veg);
-        print_results("veg (ff)", prior, veg_ff);
+        print_results("veg ff", prior, veg_ff);
         print_results("cage free", prior, cage);
         print_results("AI safety", prior, ai);
         
