@@ -53,6 +53,8 @@ const CausePriApp = React.createClass({
 
   renderResultsTab() {
     return <div>
+      <h2>Results</h2>
+
       <h3>Direct effects</h3>
 
       <Table>
@@ -148,9 +150,9 @@ const CausePriApp = React.createClass({
 
       <p>References</p>
       <ol>
-        <li>GiveWell, "Deworm the World Initiative." http://www.givewell.org/international/top-charities/deworm-world-initiative</li>
-        <li>GiveWell, "GiveWell's Cost-Effectiveness Analyses." http://www.givewell.org/international/technical/criteria/cost-effectiveness/cost-effectiveness-models</li>
-        <li>Dickens, "GiveWell's Charity Recommendations Require Taking a Controversial Stance on Population Ethics." http://mdickens.me/2016/05/16/givewell's_charity_recommendations_require_taking_an_unusual_stance_on_population_ethics/</li>
+        <li>GiveWell, <a href="http://www.givewell.org/international/top-charities/deworm-world-initiative">"Deworm the World Initiative."</a></li>
+        <li>GiveWell, <a href="http://www.givewell.org/international/technical/criteria/cost-effectiveness/cost-effectiveness-models">"GiveWell's Cost-Effectiveness Analyses."</a></li>
+        <li>Dickens, <a href="http://mdickens.me/2016/05/16/givewell's_charity_recommendations_require_taking_an_unusual_stance_on_population_ethics/">"GiveWell's Charity Recommendations Require Taking a Controversial Stance on Population Ethics."</a></li>
       </ol>
 
       </div>
@@ -194,9 +196,9 @@ const CausePriApp = React.createClass({
 
       <p>References</p>
         <ol>
-        <li>Tomasik, "How Many Wild Animals Are There?" http://reducing-suffering.org/how-many-wild-animals-are-there/</li>
-        <li>Wikipedia, "Timeline of the Far Future." https://en.wikipedia.org/wiki/Timeline_of_the_far_future</li>
-        <li>Bradbury, "Matrioshka Brains." https://www.gwern.net/docs/1999-bradbury-matrioshkabrains.pdf</li>
+        <li>Tomasik, <a href="http://reducing-suffering.org/how-many-wild-animals-are-there/">"How Many Wild Animals Are There?"</a></li>
+        <li>Wikipedia, <a href="https://en.wikipedia.org/wiki/Timeline_of_the_far_future">"Timeline of the Far Future."</a></li>
+        <li>Bradbury, <a href="https://www.gwern.net/docs/1999-bradbury-matrioshkabrains.pdf">"Matrioshka Brains."</a></li>
         </ol>
 
     </div>
@@ -230,8 +232,8 @@ const CausePriApp = React.createClass({
 
      <p>References</p>
      <ol>
-        <li>Animal Charity Evaluators, "Impact Calculator." http://www.animalcharityevaluators.org/research/interventions/impact-calculator/</li>
-    <li>Animal Charity Evaluators, "ACE Leafleting / Online Ads Impact Spreadsheet." https://docs.google.com/spreadsheets/d/1YSkZDTWacpkmnZMdRsIMLuCOdIILNVmGTIQAomZDxD4</li>
+        <li>Animal Charity Evaluators, <a href="http://www.animalcharityevaluators.org/research/interventions/impact-calculator/">"Impact Calculator."</a></li>
+    <li>Animal Charity Evaluators, <a href="https://docs.google.com/spreadsheets/d/1YSkZDTWacpkmnZMdRsIMLuCOdIILNVmGTIQAomZDxD4">"ACE Leafleting / Online Ads Impact Spreadsheet."</a></li>
     </ol>
     </div>
   },
@@ -253,8 +255,8 @@ const CausePriApp = React.createClass({
 
     <p>References</p>
     <ol>
-        <li>Open Philanthropy Project, "Initial Grants to Support Cage-Free Reforms." http://www.openphilanthropy.org/blog/initial-grants-support-corporate-cage-free-reforms</li>
-        <li>United Egg Producers, "General US Stats." http://www.unitedegg.org/GeneralStats/default.cfm</li>
+        <li>Open Philanthropy Project, <a href="http://www.openphilanthropy.org/blog/initial-grants-support-corporate-cage-free-reforms">"Initial Grants to Support Cage-Free Reforms."</a></li>
+        <li>United Egg Producers, <a href="http://www.unitedegg.org/GeneralStats/default.cfm">"General US Stats."</a></li>
     </ol>
 
     </div>
@@ -263,6 +265,8 @@ const CausePriApp = React.createClass({
   renderAISafetyTab() {
     return <div>
     <h3>AI Safety</h3>
+
+    <p>For this intervention, we are going to have a mixture over two models.</p>
 
     <p>Model weights: how much relative credence should we put in each model?</p>
 
@@ -296,10 +300,10 @@ const CausePriApp = React.createClass({
 
     <p>References</p>
     <ol>
-        <li>Machine Intelligence Research Institute, "Predicting AGI." http://intelligence.org/files/PredictingAGI.pdf</li>
-        <li>Machine Intelligence Research Institute, "How Big is the Field of Artificial Intelligence?" https://intelligence.org/2014/01/28/how-big-is-ai/</li>
-        <li>Future of Humanity Institute, "Global Catastrophic Risks Survey." http://www.fhi.ox.ac.uk/gcr-report.pdf</li>
-        <li>Global Priorities Project, "How much doe work in AI safety help the world?" http://globalprioritiesproject.org/2015/08/quantifyingaisafety/</li>
+        <li>Machine Intelligence Research Institute, <a href="http://intelligence.org/files/PredictingAGI.pdf">"Predicting AGI."</a></li>
+        <li>Machine Intelligence Research Institute,  <a href="https://intelligence.org/2014/01/28/how-big-is-ai/">"How Big is the Field of Artificial Intelligence?"</a></li>
+        <li>Future of Humanity Institute,  <a href="http://www.fhi.ox.ac.uk/gcr-report.pdf">"Global Catastrophic Risks Survey."</a></li>
+        <li>Global Priorities Project, <a href="http://globalprioritiesproject.org/2015/08/quantifyingaisafety/">"How much does work in AI safety help the world?"</a></li>
     </ol>
     </div>
   },
@@ -313,7 +317,7 @@ const CausePriApp = React.createClass({
      {this.simpleDistributionsTable([
         ["P(friendly AI gets built)",0.1,0.5,"How should we think of a probability distribution over a probability? There's some sense in which some probability estimates are more precise than others. Maybe think of this as your confidence interval on what your probability estimate would be if you had better information."],
         ["P(AI researchers' values matter)",0.3,0.5,"Given that society doesn't care about animals, what's the probability that improving AI researchers' values will improve an AGI's values?"],
-        ["number of AI researchers when AGI created",30000,100000,"Different from size of AI safety community; presumably all AI researchers could matter. See https://intelligence.org/2014/01/28/how-big-is-ai/"],
+        ["number of AI researchers when AGI created",30000,100000,<span>Different from size of AI safety community; presumably all AI researchers could matter. See <a href="https://intelligence.org/2014/01/28/how-big-is-ai/">here</a>.</span>],
         ["values propagation multiplier",1,5,"If we change one researcher's values today, this many researchers' values will change by the time AGI is developed."],
         ["cost to convince one AI researcher to care about non-human minds ($)",5000,50000],
      ])}
@@ -601,6 +605,7 @@ const CausePriApp = React.createClass({
           </div>
 
           <div className="visible-xs-block visible-sm-block col-xs-12 col-sm-10 col-sm-offset-2">
+            <hr/>
             {this.renderResultsTab()}
           </div>
         </div>
