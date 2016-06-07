@@ -39,13 +39,15 @@ const CausePriApp = React.createClass({
         </ol>
 
       <p>This is an implementation of <a
-        href="http://mdickens.me/2016/05/17/a_complete_quantitative_model_for_cause_selection/">Michael Dickens' attempt</a> to buid a quantitative model for cause selection which does not have these limitations.</p>
+        href="http://mdickens.me/2016/05/17/a_complete_quantitative_model_for_cause_selection/">Michael Dickens' attempt</a> to build a quantitative model for cause selection which does not have these limitations.</p>
 
       <p>The model makes estimates by using expected-value calculations to produce probability distributions of utility values. It then uses these estimates as evidence to update a prior over the effectiveness of different interventions. Treating estimates as evidence updating a prior means that interventions with more robust evidence of effectiveness have better posteriors.</p>
 
       <p>You can use this app to see the results of the model given various input assumptions. You can see different inputs by clicking on the tabs in the sidebar. After editing them, you can click the "Calculate" button to see how your changed inputs affect the result.</p>
 
-      <p>You can add new models by <a href="https://github.com/bshlgrs/mega-michael-madness">cloning the GitHub repo</a>.</p>
+      <p>You can directly use the backend or add new models by <a href="https://github.com/bshlgrs/mega-michael-madness">cloning the GitHub repo</a>.</p>
+
+      <p>This model is a work in progress, and it has some issues. <a href="http://mdickens.me/contact/">Let me know</a> if you see any errors or have suggestions for how to improve it.</p>
 
       <p>This version was implemented by Michael Dickens and Buck Shlegeris.</p>
     </div>
@@ -56,6 +58,8 @@ const CausePriApp = React.createClass({
       <h2>Results</h2>
 
       <h3>Direct effects</h3>
+
+      <p>Measured in terms of <a href="https://en.wikipedia.org/wiki/Quality-adjusted_life_year">QALYs</a> per $1000.</p>
 
       <Table>
         <tbody>
@@ -80,7 +84,7 @@ const CausePriApp = React.createClass({
 
       <p><strong>Value of the far future:</strong> {this.output("EV of far future", "value")}</p>
 
-      <p>&sigma; gives the standard deviation of the log base 10 of the distribution. That means &sigma; tells you how the interventions vary in terms of orders of magnitude—so &sigma;=1 means the standard deviation is 1 order of magnitude.</p>
+      <p>Sigma (&sigma;) gives the standard deviation of the log base 10 of the distribution. That means &sigma; tells you how the interventions vary in terms of orders of magnitude—so &sigma;=1 means the standard deviation is 1 order of magnitude.</p>
     </div>
   },
 
@@ -95,14 +99,14 @@ const CausePriApp = React.createClass({
           ["Pareto weight",0],
       ])}
 
-      <p>Log-normal prior parameters.</p>
+      <p><a href="https://en.wikipedia.org/wiki/Log-normal_distribution">Log-normal</a> prior parameters. We write a log-normal distribution as X = 10<sup>m Z + &sigma;</sup> where Z is normally distributed and &mu; = 10<sup>m</sup>.</p>
 
       {this.simpleScalarsTable([
           ["log-normal prior mu",0.1],
           ["log-normal prior sigma",0.75],
       ])}
 
-      <p>Pareto prior parameters.</p>
+      <p><a href="https://en.wikipedia.org/wiki/Pareto_distribution">Pareto</a> prior parameters. We write a Pareto distribution as (&alpha; m<sup>&alpha;</sup>) / (x<sup>&alpha;+1</sup>) where median = m * 2<sup>1/&alpha;</sup>.</p>
 
       {this.simpleScalarsTable([
           ["Pareto prior median",0.1],
@@ -111,28 +115,27 @@ const CausePriApp = React.createClass({
 
       <p>Next establish some basic facts.</p>
       {this.simpleScalarsTable([
-        ["factory farmed animals",2e10],
-        ["interest rate",0.05],
+        ["interest rate",0.05,"Rate of return on monetary investments."],
       ])}
 
-      <p>Let's sort out how good we think different beings' lives are, and how much we care about them.</p>
+      <p>Let's sort out how good we think different beings' lives are, and how much they matter. "Well-being" tells us how subjectively valuable a being's experience is, and "sentience adjustment" tells us how sentient a being is relative to humans. So for example, factory farming is really bad, so well-being is below -1, meaning that life on a factory farm is more bad than normal life is good. But chickens are probably less sentient than humans so the sentience adjustment is less than 1.</p>
 
       {this.simpleScalarsTable([
           ["wealthy human well-being", 1, "Centered around 1 by definition"],
           ["developing-world human well-being", 0.6, "Extremely poor people's lives are about half as good as those in the developed world according to world happiness surveys."],
-          ["factory-farmed animal wellbeing", 10, "I am willing to trade maybe 10 years normal life vs. 1 year on factory farm."],
+          ["factory-farmed animal wellbeing", -10, "I would be willing to give up 10 years of normal life to avoid living one year on a factory farm."],
           ["factory-farmed animal sentience adjustment", 0.3, "This does not include fish/shellfish."],
           ["cage-free well-being improvement", 1],
           ["wild vertebrate well-being", -2],
           ["wild vertebrate sentience adjustment", 0.2],
-          ["insect well-being", 4],
+          ["insect well-being", -4],
           ["insect sentience adjustment", 0.01],
-          ["hedonium well-being", 100, "For the same energy requirements as a human brain."],
+          ["hedonium well-being", 100],
           ["hedonium brains per human brain", 1000000],
           ["em well-being", 2, "Basically humans but with less suffering."],
           ["ems per human brain", 1],
-          ["paperclip well-being", 0.1],
-          ["paperclips per human brain", 1],
+          ["paperclip maximizer well-being", 0.1],
+          ["paperclip maximizers per human brain", 1],
           ["dolorium well-being", -100],
           ["dolorium brains per human brain", 1000000]
       ])}
@@ -162,21 +165,21 @@ const CausePriApp = React.createClass({
     return <div>
       <h3>Far Future</h3>
 
-          <p>How conditionally likely are all these outcomes? (See notes for conditions)</p>
+          <p>How conditionally likely are all these outcomes? (See notes for conditions, or see the image at [5].)</p>
 
       {this.simpleScalarsTable([
-          ["P(stay on earth)",0.2],
-          ["P(we reduce WAS on balance)",0.7,"conditional on staying one earth"],
-          ["P(fill universe with biology)",0.4],
+          ["P(stay on earth)",0.2,"See [4] for explanation."],
+          ["P(we reduce WAS on balance)",0.7,"Conditional on staying on earth. WAS = wild animal suffering."],
+          ["P(fill universe with biology)",0.4,"See [4], section \"We colonize other planets, a.k.a. Biological Condition\""],
           ["P(society doesn't care about animals)",0.8,"conditional on filling universe with biology"],
-          ["P(we have factory farming)",0.2,"conditional on society doesn't care about animals"],
-          ["P(we spread WAS)",0.4,"conditional on society doesn't care about animals"],
-          ["P(we make suffering simulations)",0.3,"conditional on society doesn't care about animals"],
-          ["P(fill universe with computers)",0.4],
-          ["P(hedonium)",0.05,"conditional on filling the universe with computers"],
-          ["P(ems)",0.3,"conditional on filling the universe with computers"],
-          ["P(paperclip)",0.649,"conditional on filling the universe with computers"],
-          ["P(dolorium)",0.001,"conditional on filling the universe with computers"],
+          ["P(we have factory farming)",0.2,"Conditional on society doesn't care about animals"],
+          ["P(we spread WAS)",0.4,"Conditional on society doesn't care about animals. WAS = wild animal suffering"],
+          ["P(we make suffering simulations)",0.3,"Conditional on society doesn't care about animals"],
+          ["P(fill universe with computers)",0.4,"See [4], section \"We spread computronium\""],
+          ["P(hedonium)",0.05,"Conditional on filling the universe with computers. Hedonium = maximally happy beings experiencing euphoria forever."],
+          ["P(ems)",0.3,"Conditional on filling the universe with computers. Ems = computer emulations of human-like brains."],
+          ["P(paperclip maximizers)",0.649,"Conditional on filling the universe with computers"],
+          ["P(dolorium)",0.001,"Conditional on filling the universe with computers. Dolorium = maximally suffering beings (opposite of hedonium)."],
       ])}
 
       <p>What is the far future like?</p>
@@ -199,6 +202,8 @@ const CausePriApp = React.createClass({
         <li>Tomasik, <a href="http://reducing-suffering.org/how-many-wild-animals-are-there/">"How Many Wild Animals Are There?"</a></li>
         <li>Wikipedia, <a href="https://en.wikipedia.org/wiki/Timeline_of_the_far_future">"Timeline of the Far Future."</a></li>
         <li>Bradbury, <a href="https://www.gwern.net/docs/1999-bradbury-matrioshkabrains.pdf">"Matrioshka Brains."</a></li>
+        <li>Dickens, <a href="http://mdickens.me/2016/04/17/preventing_human_extinction,_now_with_numbers!/">"Preventing Human Extinction, Now With Numbers!"</a></li>
+        <li>Dickens, <a href="http://mdickens.me/assets/mermaid/humanity.png">"Far future outcomes tree."</a></li>
         </ol>
 
     </div>
@@ -266,7 +271,7 @@ const CausePriApp = React.createClass({
     return <div>
     <h3>AI Safety</h3>
 
-    <p>For this intervention, we are going to have a mixture over two models.</p>
+    <p>For this intervention, we are going to have a mixture over two models. This gives AI Safety a bit of an unfair advantage since the calculations assume that these two models are independent, which unduly increases confidence in them. If you don't like this, you can set one of the model weights to 0.</p>
 
     <p>Model weights: how much relative credence should we put in each model?</p>
 

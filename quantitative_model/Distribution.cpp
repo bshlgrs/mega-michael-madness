@@ -69,7 +69,9 @@ double get_delta(int index)
 }
 
 /*
- * Default initialization as Buckets type.
+ * Default initialization as empty type. For sums, an empty
+ * distribution behaves as a distribution with all its probability
+ * mass at 0; for other operations, behavior is undefined.
  */
 Distribution::Distribution() : Distribution(Type::empty) {}
 
@@ -79,7 +81,8 @@ Distribution::Distribution(Type type) : buckets(NUM_BUCKETS, 0)
 }
 
 /*
- * Takes p_m as exp(mu) and p_s and base-10 standard deviation.
+ * Takes p_m as exp(mu) and p_s and base-10 standard deviation and
+ * creates a log-normal distribution.
  */
 Distribution::Distribution(double p_m, double p_s)
 {
@@ -115,7 +118,13 @@ double Distribution::operator[](int index) const
 double Distribution::get(int index) const
 {
     if (type == Type::lognorm) {
-        return pdf(bucket_value(index));
+        if (pow(10, p_s) < STEP) {
+            // Need special case to handle small p_s or else it will
+            // appear that probability density is 0 everywhere
+            return bucket_index(p_m) == index ? 1 : 0;
+        } else {
+            return pdf(bucket_value(index));
+        }
     } else {
         return buckets[index];
     }
@@ -183,8 +192,18 @@ void Distribution::half_sum(Distribution& res, const Distribution& other, int in
  */
 Distribution Distribution::operator+(const Distribution& other) const
 {
+    /* Raises a warning on empty even though behavior here is
+     * well-defined. Distributions could be empty on purpose or
+     * because they are uninitialized.
+     */
     check_empty();
     other.check_empty();
+    if (type == Type::empty) {
+        return other;
+    } else if (other.type == Type::empty) {
+        return *this;
+    }
+
     Distribution res(Type::buckets);
 
     half_sum(res, other, 1);
@@ -262,6 +281,11 @@ Distribution Distribution::operator*(const Distribution& other) const
 Distribution Distribution::operator*(double scalar) const
 {
     check_empty();
+    if (scalar == 0) {
+        /* Return an empty distribution */
+        Distribution res;
+        return res;
+    }
     if (this->type == Type::lognorm) {
         Distribution res(p_m * scalar, p_s);
         return res;

@@ -89,8 +89,8 @@ void set_globals(Table& t)
         t["em well-being"]
         * t["ems per human brain"];
     t["utility per paperclip"] =
-        t["paperclip well-being"]
-        * t["paperclips per human brain"];
+        t["paperclip maximizer well-being"]
+        * t["paperclip maximizers per human brain"];
     t["utility per dolorium"] =
         t["dolorium well-being"]
         * t["dolorium brains per human brain"];
@@ -146,7 +146,7 @@ void set_EV_far_future(Table& t)
         * t["P(society doesn't care about animals)"]
         * t["P(we make suffering simulations)"];
     t["P(paperclips exist)"] =
-        t["P(fill universe with computers)"] * t["P(paperclip)"];
+        t["P(fill universe with computers)"] * t["P(paperclip maximizers)"];
     t["P(dolorium exists)"] =
         t["P(fill universe with computers)"] * t["P(dolorium)"];
 
@@ -252,51 +252,13 @@ Distribution veg_estimate_direct(Table& t)
 }
 
 /* Estimates the effect of veg advocacy on the far future. */
-Distribution veg_estimate_ff_old(Table& t)
-{
-    t["veg-years per $1000"] =
-        t["vegetarians per $1000"]
-        * t["years spent being vegetarian"];
-    t["veg-years directly created per $1000"] =
-        t["veg-years per $1000"]
-        * t["interest rate"];
-    t["veg-years indirectly created per $1000"] =
-        t["veg-years per $1000"]
-        * t["annual rate at which vegetarians convert new vegetarians"];
-    t["veg-years permanently created per $1000"] =
-        t["veg-years directly created per $1000"]
-        + t["veg-years indirectly created per $1000"];
-
-    /* You have to define this last because C++ is stupid */
-    auto helper = [t](Distribution prop, Distribution utility)
-        mutable -> Distribution
-    {
-        return prop
-        * utility
-        * t["memetically relevant humans"].reciprocal()
-        * t["veg-years permanently created per $1000"];
-    };
-    
-    return helper(CI(1), t["factory farming weighted utility"])
-        + helper(t["wild vertebrate suffering prevented if we end factory farming"],
-                 t["wild vertebrate weighted utility"])
-        + helper(t["insect suffering prevented"],
-                 t["insect weighted utility"])
-        + helper(t["suffering simulations prevented"],
-                 t["simulation weighted utility"])
-        + helper(t["hedonium caused"],
-                 t["hedonium weighted utility"]);
-}
-
-/* Estimates the effect of veg advocacy on the far future. */
 Distribution veg_estimate_ff(Table& t)
 {
      t["veg-years per $1000"] =
         t["vegetarians per $1000"]
         * t["years spent being vegetarian"];
     t["veg-years directly created per $1000"] =
-        t["veg-years per $1000"]
-        * t["interest rate"];
+        t["veg-years per $1000"];
     t["veg-years indirectly created per $1000"] =
         t["veg-years per $1000"]
         * t["annual rate at which vegetarians convert new vegetarians"];
@@ -328,6 +290,7 @@ Distribution ai_safety_model_1(Table& t)
         * t["AI researcher multiplicative effect"]
         * t["proportion of bad scenarios averted by doubling total research"]
         * t["cost per AI researcher"].reciprocal()
+        * t["EV of far future"]
         * 1000;
 }
 
@@ -336,8 +299,8 @@ Distribution ai_safety_model_2(Table& t)
     return t["cost per AI researcher"].reciprocal()
         * t["hours to solve AI safety"].reciprocal()
         * t["hours per year per AI researcher"]
-        * 1000
-        * t["EV of far future"];
+        * t["EV of far future"]
+        * 1000;
 }
 
 Distribution ai_safety_estimate(Table& t)

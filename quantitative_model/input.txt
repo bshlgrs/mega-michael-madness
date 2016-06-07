@@ -4,23 +4,22 @@ log-normal prior mu,0.1,0.1
 log-normal prior sigma,0.75,0.75
 Pareto prior median,0.1,0.1
 Pareto prior alpha,1.5,1.5
-factory farmed animals,20000000000,20000000000
 interest rate,0.05,0.05
 wealthy human well-being,1,1
 developing-world human well-being,0.6,0.6
-factory-farmed animal wellbeing,10,10
+factory-farmed animal wellbeing,-10,-10
 factory-farmed animal sentience adjustment,0.3,0.3
 cage-free well-being improvement,1,1
 wild vertebrate well-being,-2,-2
 wild vertebrate sentience adjustment,0.2,0.2
-insect well-being,4,4
+insect well-being,-4,-4
 insect sentience adjustment,0.01,0.01
 hedonium well-being,100,100
 hedonium brains per human brain,1000000,1000000
 em well-being,2,2
 ems per human brain,1,1
-paperclip well-being,0.1,0.1
-paperclips per human brain,1,1
+paperclip maximizer well-being,0.1,0.1
+paperclip maximizers per human brain,1,1
 dolorium well-being,-100,-100
 dolorium brains per human brain,1000000,1000000
 GiveDirectly,0.9,1.1
@@ -35,7 +34,7 @@ P(we make suffering simulations),0.3,0.3
 P(fill universe with computers),0.4,0.4
 P(hedonium),0.05,0.05
 P(ems),0.3,0.3
-P(paperclip),0.649,0.649
+P(paperclip maximizers),0.649,0.649
 P(dolorium),0.001,0.001
 years of future,100000000000,1000000000000
 accessible stars by computers,100000000000,100000000000000
