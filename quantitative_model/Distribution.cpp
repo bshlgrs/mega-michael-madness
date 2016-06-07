@@ -14,6 +14,12 @@
 
 using namespace std;
 
+void error(string message)
+{
+    cerr << "Error: " << message << endl;
+    exit(1);
+}
+
 function<double(double)> lomax_pdf(double median, double alpha)
 {
     double x_m = median / pow(2, 1.0 / alpha);
@@ -92,6 +98,16 @@ Distribution::Distribution(double p_m, double p_s)
     this->pdf = lognorm_pdf(p_m, p_s);
 }
 
+Distribution::Distribution(Distribution neg, Distribution pos,
+                           double pos_weight)
+{
+    // Distributions need to be pointers because a class can't contain itself
+    this->type = Type::double_lognorm;
+    this->neg = new Distribution(neg);
+    this->pos = new Distribution(pos);
+    this->pos_weight = pos_weight;
+}
+
 /*
  * Constructs buckets given a probability density function (PDF).
  */
@@ -100,6 +116,16 @@ Distribution::Distribution(function<double(double)> pdf) :
 {
     for (int i = 0; i < NUM_BUCKETS; i++) {
         buckets[i] = pdf(bucket_value(i));
+    }
+}
+
+Distribution::~Distribution()
+{
+    if (neg != NULL) {
+        delete neg;
+    }
+    if (pos != NULL) {
+        delete pos;
     }
 }
 
@@ -130,6 +156,9 @@ double Distribution::get(int index) const
     }
 }
 
+/*
+ * Creates a log-normal distribution given a mean and variance.
+ */
 Distribution Distribution::lognorm_from_mean_and_variance(
     double mean,
     double var)
@@ -151,6 +180,18 @@ Distribution Distribution::to_lognorm()
     } else {
         return Distribution::lognorm_from_mean_and_variance(
             this->mean(), this->variance());
+    }
+}
+
+Distribution Distribution::to_double_lognorm()
+{
+    if (type == Type::double_lognorm) {
+        return *this;
+    } else if (type == Type::lognorm) {
+        Distribution res(empty, *this, 1);
+        return res;
+    } else {
+        return to_lognorm().to_double_lognorm();
     }
 }
 
@@ -202,6 +243,13 @@ Distribution Distribution::operator+(const Distribution& other) const
         return other;
     } else if (other.type == Type::empty) {
         return *this;
+    } else if (type == Type::double_lognorm && other.type == Type::double_lognorm) {
+        Distribution res(neg + other.neg,
+                         pos + other.pos,
+                         (pos_weight + other.pos_weight) / 2);
+        return res;
+    } else if (type == Type::double_lognorm || other.type == Type::double_lognorm) {
+        error("Addition on unsupported distribution types.");
     }
 
     Distribution res(Type::buckets);
@@ -220,25 +268,16 @@ Distribution Distribution::operator-(Distribution& other)
 {
     check_empty();
     other.check_empty();
-    if (type == Type::lognorm || other.type == Type::lognorm) {
-        Distribution x = this->to_lognorm();
-        Distribution y = other.to_lognorm();
+    if (type != Type::double_lognorm || other.type != Type::double_lognorm) {
+        Distribution x = this->to_double_lognorm();
+        Distribution y = other.to_double_lognorm();
         return x - y;
     } else {
-        double mean1 = this->mean();
-        double mean2 = other.mean();
-        double var1 = this->variance();
-        double var2 = other.variance();
-        double new_mean = mean1 - mean2;
-
-        /* The formula for variance is given by
-         *   Var(X - Y) = E[X^2] - 2(Cov[X,Y] + E[X]E[Y]) + E[Y^2] - E[X-Y]^2
-         */
-        double new_var = (var1 + pow(mean1, 2))
-            - 2 * mean1 * mean2
-            + (var2 + pow(mean2, 2))
-            - pow(mean1 - mean2, 2);
-        return Distribution::lognorm_from_mean_and_variance(new_mean, new_var);
+        Distribution neg = this->neg + other.pos;
+        Distribution pos = this->pos + other.neg;
+        double pos_weight = (this->pos_weight + (1 - other->pos_weight)) / 2;
+        Distribution res(neg, pos, pos_weight);
+        return res;
     }
 }
 
@@ -255,7 +294,15 @@ Distribution Distribution::operator*(const Distribution& other) const
         double new_p_s = sqrt(pow(p_s, 2) + pow(other.p_s, 2));
         Distribution res(new_p_m, new_p_s);
         return res;
-    } else {
+    } else if (type == Type::double_lognorm &&
+               other.type == Type::double_lognorm) {
+        Distribution neg = (this->pos * other.neg) + (this->neg * other.pos);
+        Distribution pos = (this->pos * other.pos) + (this->neg * other.neg);
+        double pos_weight = (this->pos_weight * other.pos_weight +
+                             (1 - this->pos_weight) * (1 - other.pos_weight));
+        Distribution res(neg, pos, pos_weight);
+        return res;
+    } else if (type == Type::buckets && other.type == Type::buckets) {
         Distribution res(Type::buckets);
         for (int i = 0; i < NUM_BUCKETS; i++) {
             for (int j = 0; j < NUM_BUCKETS; j++) {
@@ -272,6 +319,8 @@ Distribution Distribution::operator*(const Distribution& other) const
             }
         }
         return res;
+    } else {
+        error("Multiplication on unsupported distribution types.");
     }
 }
 
@@ -286,10 +335,13 @@ Distribution Distribution::operator*(double scalar) const
         Distribution res;
         return res;
     }
-    if (this->type == Type::lognorm) {
+    if (type == Type::lognorm) {
         Distribution res(p_m * scalar, p_s);
         return res;
-    } else {
+    } else if (type == Type::double_lognorm) {
+        Distribution res(neg * scalar, pos * scalar, pos_weight);
+        return res;
+    } else if (type == Type::buckets) {
         /* TODO: test this */
         Distribution res(Type::buckets);
         for (int i = 0; i < NUM_BUCKETS; i++) {
@@ -303,6 +355,8 @@ Distribution Distribution::operator*(double scalar) const
             res.buckets[index] += density;
         }
         return res;
+    } else {
+        error("Scalar multiplication on unsupported distribution type.");
     }
 }
 
@@ -313,12 +367,13 @@ Distribution Distribution::operator*(double scalar) const
  * location 1/X.
  * 
  * If this distribution is not log-normal, first converts it to a
- * log-normal approximation.
+ * log-normal approximation. But you probably shouldn't be calling
+ * it on anything that's not log-normal anyway.
  */
 Distribution Distribution::reciprocal()
 {
     check_empty();
-    if (this->type == Type::lognorm) {
+    if (type == Type::lognorm) {
         Distribution res(1 / p_m, p_s);
         return res;
     } else {
@@ -337,14 +392,18 @@ double Distribution::mean()
 
     is_mean_cached = true;
     cached_mean = 0;
-    if (this->type == Type::lognorm) {
+    if (type == Type::lognorm) {
         /* see https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
         double sigma = log(10) * p_s;
         cached_mean = p_m * exp(0.5 * pow(sigma, 2));
-    } else {
+    } else if (type == Type::double_lognorm) {
+        cached_mean = pos->mean() * pos_weight - neg->mean() * (1 - pos_weight);
+    } else if (type == Type::buckets) {
         for (int i = 0; i < NUM_BUCKETS; i++) {
             cached_mean += bucket_value(i) * get(i) * get_delta(i);
         }
+    } else {
+        error("Mean called on unsupported distribution type.");
     }
 
     return cached_mean;
@@ -360,16 +419,28 @@ double Distribution::variance()
     }
 
     is_variance_cached = true;
-    if (this->type == Type::lognorm) {
+    if (type == Type::lognorm) {
         /* see https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
         double sigma = log(10) * p_s;
         cached_variance = pow(cached_mean, 2) * (exp(pow(sigma, 2)) - 1);
-    } else {
+    } else if (type == Type::double_lognorm) {
+        /* The formula for variance is given by
+         *   Var(X - Y) = E[X^2] - 2(Cov[X,Y] + E[X]E[Y]) + E[Y^2] - E[X-Y]^2
+         */
+        double var1 = pos->variance();
+        double var2 = neg->variance();
+        cached_variance = (var1 + pow(mean1, 2))
+            - 2 * mean1 * mean2
+            + (var2 + pow(mean2, 2))
+            - pow(mean1 - mean2, 2);        
+    } else if (type == Type::buckets) {
         double sigma2 = 0;
         for (int i = 0; i < NUM_BUCKETS; i++) {
             sigma2 += pow(bucket_value(i), 2) * get(i) * get_delta(i);
         }
         cached_variance = sigma2 - pow(cached_mean, 2);
+    } else {
+        error("Variance called on unsupported distribution type.");
     }
 
     return cached_variance;
@@ -388,8 +459,10 @@ double Distribution::integrand(Distribution& measurement, int index, bool ev) co
         double expmu = mean1 / sqrt(1 + var / pow(mean1, 2));
         double sigma = sqrt(log(1 + var / pow(mean1, 2)));
         update = lognorm_pdf(u, sigma / log(10))(expmu);
-    } else {
+    } else if (measurement.type == Type::lognorm) {
         update = lognorm_pdf(u, measurement.p_s)(measurement.p_m);
+    } else {
+        error("Integrand undefined for given measurement distribution type.");
     }
 
     double res = prior * update;
@@ -407,6 +480,7 @@ double Distribution::integral(Distribution& measurement, bool ev) const
     double y_lo = integrand(measurement, 0, ev);
     double y_hi;
     double avg, delta;
+    // TODO: this should cover negative values too
     for (int i = 0; i < NUM_BUCKETS; i++) {
         y_hi = integrand(measurement, i, ev);
         avg = (y_lo + y_hi) / 2;

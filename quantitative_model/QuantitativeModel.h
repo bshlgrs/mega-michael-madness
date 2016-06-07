@@ -25,7 +25,7 @@
 #define EXP_OFFSET 100
 #define GAUSSIAN_90TH_PERCENTILE 1.2815515655
 
-enum class Type { empty, buckets, lognorm };
+enum class Type { empty, buckets, lognorm, double_lognorm };
 
 class Distribution {
 private:
@@ -40,20 +40,32 @@ private:
     
 public:
     std::function<double(double)> pdf;
-    std::vector<double> buckets;
     std::string name;
 
-    /* using enum instead of subclasses because C++ is stupid */
+    /* Using enum instead of subclasses because C++ is stupid. Would
+     * save memory to put params for different types inside a union
+     * but who cares.
+     */
     Type type;
+
+    /* param for buckets */
+    std::vector<double> buckets;
 
     /* params for log-normal */
     double p_m; /* exp(mu) */
     double p_s; /* base-10 sigma */
 
+    /* params for double log-normal */
+    Distribution *neg;
+    Distribution *pos;
+    double pos_weight; /* between 0 and 1; neg weight is 1 - pos_weight */
+
     Distribution();
     Distribution(Type type);
     Distribution(double p_m, double p_s);
+    Distribution(Distribution neg, Distribution pos, double pos_weight);
     Distribution(std::function<double(double)> pdf);
+    ~Distribution();
     void check_empty() const;
     double operator[](int index) const;
     double get(int index) const;
