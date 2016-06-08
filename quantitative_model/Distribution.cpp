@@ -205,27 +205,50 @@ vector<double> Distribution::prefix_sum() const
     return res;
 }
 
-void Distribution::half_sum(Distribution& res, const Distribution& other, int include_diagonal) const
+void Distribution::half_op(function<double(double, double)> op,
+                           Distribution& neg_res, Distribution& pos_res,
+                           const Distribution& other,
+                           bool include_diagonal) const
 {
     vector<double> other_prefix_sum = other.prefix_sum();
     // log_STEP(2) gives approximate most steps away a sum can be,
     // then add a constant to be safe
     int band_size = (int) ceil(log(2) / log(STEP) + 3);
+    int offset = include_diagonal ? 1 : 0;
 
     for (int i = 0; i < NUM_BUCKETS; i++) {
         if (i > band_size) {
             double mass = other_prefix_sum[i - band_size - 1] * get(i) * get_delta(i);
             res.buckets[i] += mass / get_delta(i);
         }
-        for (int j = max(i - band_size, 0); j < i + include_diagonal; j++) {
-            int index = bucket_index(bucket_value(i) + bucket_value(j));
+        for (int j = max(i - band_size, 0); j < i + offset; j++) {
+            double x = op(bucket_value(i), bucket_value(j));
+            int index = bucket_index(abs(x));
             double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
             if (index >= NUM_BUCKETS) {
                 index = NUM_BUCKETS - 1;
             }
-            res.buckets[index] += mass / get_delta(index);
+            if (x > 0) {
+                pos_res.buckets[index] += mass / get_delta(index);
+            } else {
+                neg_res.buckets[index] += mass / get_delta(index);
+            }
         }
     }
+}
+
+void Distribution::half_sum(Distribution& res, const Distribution& other,
+                            bool include_diagonal) const
+{
+    half_op([](double x, double y) { return x + y; }, res, other,
+            include_diagonal);
+}
+
+void Distribution::half_difference(Distribution& res, const Distribution& other,
+                             bool include_diagonal, int sign) const
+{
+    half_op([sign](double x, double y) { return sign * (x - y); }, res, other,
+            include_diagonal);
 }
 
 /*
@@ -244,19 +267,23 @@ Distribution Distribution::operator+(const Distribution& other) const
     } else if (other.type == Type::empty) {
         return *this;
     } else if (type == Type::double_lognorm && other.type == Type::double_lognorm) {
-        Distribution res(neg + other.neg,
-                         pos + other.pos,
-                         (pos_weight + other.pos_weight) / 2);
+        // TODO: THIS DOES THE WRONG THING. We don't want to scale the
+        // distribution, we want to reduce the probability density at
+        // each point.
+        Distribution pos1 = this->pos * pos_weight; 
+        Distribution sum_nn = neg * (1 - pos_weight) + other.neg * (1 - other.pos_weight);
+        Distribution sum_pp = this->pos * pos_weight + other.pos * other.pos_weight;
+        Distribution sum_pn, sum_np;
+        pos->half_difference(sum_pn, other.neg, true, 1);
+        other.neg.half_difference(sum_pn, *pos, false, -1);
+        neg->half_difference(sum_np, other.pos, true, -1);
+        other.pos.half_difference(sum_np, *neg, false, 1);
+    } else {
+        Distribution res(Type::buckets);
+        half_sum(res, other, true);
+        other.half_sum(res, *this, false);
         return res;
-    } else if (type == Type::double_lognorm || other.type == Type::double_lognorm) {
-        error("Addition on unsupported distribution types.");
     }
-
-    Distribution res(Type::buckets);
-
-    half_sum(res, other, 1);
-    other.half_sum(res, *this, 0);
-    return res;
 }
 
 /*
@@ -273,6 +300,7 @@ Distribution Distribution::operator-(Distribution& other)
         Distribution y = other.to_double_lognorm();
         return x - y;
     } else {
+        // TODO: this is wrong
         Distribution neg = this->neg + other.pos;
         Distribution pos = this->pos + other.neg;
         double pos_weight = (this->pos_weight + (1 - other->pos_weight)) / 2;
