@@ -128,9 +128,9 @@ void set_EV_far_future(Table& t)
         * t["computer brains in far future"];
 
     t["pos EV of far future"] =
-        t["human weighted utility"]
-        + t["hedonium weighted utility"]
-        + t["em weighted utility"];
+        (t["human weighted utility"]
+         + t["hedonium weighted utility"]
+         + t["em weighted utility"]).to_lognorm();
     
     t["P(factory farming exists)"] =
         t["P(fill universe with biology)"]
@@ -181,12 +181,12 @@ void set_EV_far_future(Table& t)
         * t["computer brains in far future"];
 
     t["neg EV of far future"] =
-        t["factory farming weighted utility"]
-        + t["wild vertebrate weighted utility"]
-        + t["insect weighted utility"]
-        + t["simulation weighted utility"]
-        + t["paperclip weighted utility"]
-        + t["dolorium weighted utility"];
+        (t["factory farming weighted utility"]
+         + t["wild vertebrate weighted utility"]
+         + t["insect weighted utility"]
+         + t["simulation weighted utility"]
+         + t["paperclip weighted utility"]
+         + t["dolorium weighted utility"]).to_lognorm();
 
     t["EV of far future"] =
         t["pos EV of far future"]
@@ -263,8 +263,8 @@ Distribution veg_estimate_ff(Table& t)
         t["veg-years per $1000"]
         * t["annual rate at which vegetarians convert new vegetarians"];
     t["veg-years permanently created per $1000"] =
-        t["veg-years directly created per $1000"]
-        + t["veg-years indirectly created per $1000"];
+        (t["veg-years directly created per $1000"]
+         + t["veg-years indirectly created per $1000"]).to_lognorm();
 
     return
         t["weighted utility of values spreading"]

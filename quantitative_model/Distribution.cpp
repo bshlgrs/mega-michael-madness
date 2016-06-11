@@ -14,10 +14,44 @@
 
 using namespace std;
 
+#define ASSERT(pred)                                                \
+    if (!(pred)) {                                                  \
+        stringstream s;                                             \
+        s << "`" #pred "` failed on Distribution \"" << this->name  \
+          << "\", type " << type_to_string(this->type) << " ("      \
+          << __FILE__ << ", line " << __LINE__ << ")";              \
+        cerr << s.str() << endl;                                    \
+        throw s.str();                                              \
+    }                                                               
+
 void error(string message)
 {
-    cerr << "Error: " << message << endl;
-    exit(1);
+    stringstream s;
+    s << "Error: " << message;
+    cerr << s.str() << endl;
+    throw s.str();
+}
+
+string type_to_string(Type type)
+{
+    switch (type) {
+    case Type::empty: return "empty";
+    case Type::buckets: return "buckets";
+    case Type::lognorm: return "lognorm";
+    case Type::double_dist: return "double_dist";
+    default: error("Undefined type " + to_string((int) type));
+    }
+}
+
+void unsupported_operation(string op, const Distribution *left, const Distribution *right)
+{
+    stringstream s;
+    s << "Unsupported operation `" << op << "` on distribution \""
+      << left->name << "\"::" << type_to_string(left->type);
+    if (right) {
+        s << " and \"" << right->name << "\"::" << type_to_string(right->type);
+    }
+    error(s.str());
 }
 
 function<double(double)> lomax_pdf(double median, double alpha)
@@ -98,13 +132,18 @@ Distribution::Distribution(double p_m, double p_s)
     this->pdf = lognorm_pdf(p_m, p_s);
 }
 
+/* Initializes a double distribution. */
 Distribution::Distribution(Distribution neg, Distribution pos,
-                           double pos_weight)
+                           double pos_weight) :
+    Distribution(neg, 1 - pos_weight, pos, pos_weight) {}
+
+Distribution::Distribution(Distribution neg, double neg_weight,
+                           Distribution pos, double pos_weight)
 {
-    // Distributions need to be pointers because a class can't contain itself
-    this->type = Type::double_lognorm;
+    this->type = Type::double_dist;
     this->neg = new Distribution(neg);
     this->pos = new Distribution(pos);
+    this->neg_weight = neg_weight;
     this->pos_weight = pos_weight;
 }
 
@@ -121,18 +160,67 @@ Distribution::Distribution(function<double(double)> pdf) :
 
 Distribution::~Distribution()
 {
-    if (neg != NULL) {
-        delete neg;
+    // Maybe this should free neg and pos? It seems to happen
+    // automatically?
+}
+
+Distribution Distribution::operator=(const Distribution& other)
+{
+    if (this == &other) {
+        return *this;
     }
-    if (pos != NULL) {
-        delete pos;
+    cached_mean = other.cached_mean;
+    cached_variance = other.cached_variance;
+    is_mean_cached = other.is_mean_cached;
+    is_variance_cached = other.is_variance_cached;
+    pdf = other.pdf;
+    name = other.name;
+    type = other.type;
+    buckets = other.buckets;
+    p_m = other.p_m;
+    p_s = other.p_s;
+    if (neg) {
+        delete neg;    
+        neg = NULL;
     }
+    if (pos) {
+        delete pos;   
+        pos = NULL;
+    } 
+    if (other.neg) {
+        neg = new Distribution;
+        *neg = *other.neg;
+    }
+    if (other.pos) {
+        pos = new Distribution;
+        *pos = *other.pos;
+    }
+    neg_weight = other.neg_weight;
+    pos_weight = other.pos_weight;
+
+    return *this;
 }
 
 void Distribution::check_empty() const
 {
     if (type == Type::empty) {
         cerr << "Warning: \"" << name << "\" is empty." << endl;
+    }
+}
+
+/*
+ * If `this` is empty, converts it into a bucket distribution where
+ * the probability density in each bucket is 0. This is desired
+ * behavior in some circumstances.
+ */
+Distribution Distribution::fix_empty() const
+{
+    if (type == Type::empty) {
+        Distribution res = *this;
+        res.type = Type::buckets;
+        return res;
+    } else {
+        return *this;
     }
 }
 
@@ -154,6 +242,17 @@ double Distribution::get(int index) const
     } else {
         return buckets[index];
     }
+}
+
+void Distribution::set_name(string op, const Distribution& other)
+{
+    this->name = op + "(" + other.name + ")";
+}
+
+void Distribution::set_name(string op, const Distribution& left,
+                            const Distribution& right)
+{
+    this->name = left.name + " " + op + " " + right.name;
 }
 
 /*
@@ -178,21 +277,38 @@ Distribution Distribution::to_lognorm()
     if (type == Type::lognorm) {
         return *this;
     } else {
-        return Distribution::lognorm_from_mean_and_variance(
+        Distribution res = Distribution::lognorm_from_mean_and_variance(
             this->mean(), this->variance());
+        res.set_name("to_lognorm", *this);
+        return res;
     }
 }
 
-Distribution Distribution::to_double_lognorm()
+Distribution Distribution::to_double_dist() const
 {
-    if (type == Type::double_lognorm) {
+    if (type == Type::double_dist) {
         return *this;
-    } else if (type == Type::lognorm) {
-        Distribution res(empty, *this, 1);
-        return res;
     } else {
-        return to_lognorm().to_double_lognorm();
+        Distribution empty;
+        Distribution res(empty, *this, 1);
+        res.set_name("to_double_dist", *this);
+        return res;
     }
+}
+
+/*
+ * For a bucket distribution, scales the probability densities in each bucket.
+ */
+Distribution Distribution::scale_by(double scalar) const
+{
+    ASSERT(type == Type::buckets);
+    Distribution scaled = *this;
+    scaled.set_name("scale_by", *this);
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+        scaled.buckets[i] *= scalar;
+    }
+
+    return scaled;
 }
 
 vector<double> Distribution::prefix_sum() const
@@ -205,24 +321,46 @@ vector<double> Distribution::prefix_sum() const
     return res;
 }
 
+/*
+ * Computes operations on a triangular set of bucket pairs covering
+ * half the pairs, and optionally including the diagonal. Returns
+ * either a bucket distribution or a double bucket distribution by
+ * storing the result in `res`.
+ */
 void Distribution::half_op(function<double(double, double)> op,
-                           Distribution& neg_res, Distribution& pos_res,
+                           Distribution& res,
                            const Distribution& other,
                            bool include_diagonal) const
 {
+    ASSERT(this->type != Type::double_dist);
+    ASSERT(other.type != Type::double_dist);
     vector<double> other_prefix_sum = other.prefix_sum();
     // log_STEP(2) gives approximate most steps away a sum can be,
     // then add a constant to be safe
     int band_size = (int) ceil(log(2) / log(STEP) + 3);
     int offset = include_diagonal ? 1 : 0;
+    Distribution neg_res(Type::buckets), pos_res(Type::buckets);
+    bool used_neg = false;
 
     for (int i = 0; i < NUM_BUCKETS; i++) {
-        if (i > band_size) {
+        if (i > band_size && get_delta(i) != 0) {
+            // For buckets in `other` that are sufficiently smaller
+            // than this bucket, the sum/difference lands in the same
+            // bucket as the bucket for `this`.
             double mass = other_prefix_sum[i - band_size - 1] * get(i) * get_delta(i);
-            res.buckets[i] += mass / get_delta(i);
+            if (op(bucket_value(i), 0) > 0) {
+                pos_res.buckets[i] += mass / get_delta(i);
+            } else {
+                neg_res.buckets[i] += mass / get_delta(i);
+            }
         }
         for (int j = max(i - band_size, 0); j < i + offset; j++) {
             double x = op(bucket_value(i), bucket_value(j));
+            if (x == 0) {
+                // Need to handle this special case because no bucket
+                // can contain 0
+                continue;
+            }
             int index = bucket_index(abs(x));
             double mass = get(i) * get_delta(i) * other.get(j) * get_delta(j);
             if (index >= NUM_BUCKETS) {
@@ -231,9 +369,22 @@ void Distribution::half_op(function<double(double, double)> op,
             if (x > 0) {
                 pos_res.buckets[index] += mass / get_delta(index);
             } else {
+                // Note: this never happens because we never look at
+                // buckets in `other` with a greater value than the
+                // current bucket in `this`
+                used_neg = true;
                 neg_res.buckets[index] += mass / get_delta(index);
             }
         }
+    }
+
+    /* The returned result is either a single buckets distribution or a double
+     * distribution. */
+    if (used_neg) {
+        Distribution res1(neg_res, 1, pos_res, 1);
+        res = res1;
+    } else {
+        res = pos_res;
     }
 }
 
@@ -262,28 +413,80 @@ Distribution Distribution::operator+(const Distribution& other) const
      */
     check_empty();
     other.check_empty();
+    Distribution empty, res;
     if (type == Type::empty) {
-        return other;
+        res = other;
     } else if (other.type == Type::empty) {
-        return *this;
-    } else if (type == Type::double_lognorm && other.type == Type::double_lognorm) {
-        // TODO: THIS DOES THE WRONG THING. We don't want to scale the
-        // distribution, we want to reduce the probability density at
-        // each point.
-        Distribution pos1 = this->pos * pos_weight; 
-        Distribution sum_nn = neg * (1 - pos_weight) + other.neg * (1 - other.pos_weight);
-        Distribution sum_pp = this->pos * pos_weight + other.pos * other.pos_weight;
+        res = *this;
+    } else if (type == Type::double_dist && other.type == Type::double_dist) {
+        // Produce 4 distributions given by
+        //   neg1 + neg2, pos1 + pos2, pos1 - neg2, pos2 - neg1
+        // Then sum their buckets.
+        Distribution neg1 = *this->neg;
+        Distribution pos1 = *this->pos;
+        Distribution neg2 = *other.neg;
+        Distribution pos2 = *other.pos;
+        Distribution sum_nn = neg1 + neg2;
+        Distribution sum_pp = pos1 + pos2;
+        double nn_weight = this->neg_weight * other.neg_weight;
+        double pp_weight = this->pos_weight * other.pos_weight;
+        double np_weight = this->neg_weight * other.pos_weight;
+        double pn_weight = this->pos_weight * other.neg_weight;
+
+        // `half_difference` initializes these as double dists
         Distribution sum_pn, sum_np;
-        pos->half_difference(sum_pn, other.neg, true, 1);
-        other.neg.half_difference(sum_pn, *pos, false, -1);
-        neg->half_difference(sum_np, other.pos, true, -1);
-        other.pos.half_difference(sum_np, *neg, false, 1);
+
+        // Compute bucketwise differences and store in `sum_pn` and `sum_np`
+        pos1.half_difference(sum_pn, neg2, true, 1);
+        neg2.half_difference(sum_pn, pos1, false, -1);
+        neg1.half_difference(sum_np, pos2, true, -1);
+        pos2.half_difference(sum_np, neg1, false, 1);
+
+        // Combine buckets for each sum dist
+        Distribution neg_res(Type::buckets);
+        Distribution pos_res(Type::buckets);
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            neg_res.buckets[i] = sum_nn.get(i) * nn_weight;
+            if (sum_pn.type == Type::double_dist)
+                neg_res.buckets[i] += sum_pn.neg->get(i) * pn_weight;
+            if (sum_np.type == Type::double_dist)
+                neg_res.buckets[i] += sum_np.neg->get(i) * np_weight;
+
+            pos_res.buckets[i] = sum_pp.get(i) * pp_weight;
+            if (sum_pn.type == Type::double_dist)
+                pos_res.buckets[i] += sum_pn.pos->get(i) * pn_weight;
+            else
+                pos_res.buckets[i] += sum_pn.get(i) * pn_weight;
+            if (sum_np.type == Type::double_dist)
+                pos_res.buckets[i] += sum_np.pos->get(i) * np_weight;
+            else
+                pos_res.buckets[i] += sum_np.get(i) * np_weight;
+        }
+
+        // If both inputs used log-normal sub-dists, preserve that.
+        if (this->neg->type == Type::lognorm
+            && other.neg->type == Type::lognorm) {
+            neg_res = neg_res.to_lognorm();
+        }
+        if (this->pos->type == Type::lognorm
+            && other.pos->type == Type::lognorm) {
+            pos_res = pos_res.to_lognorm();
+        }
+
+        // Use weights 1 here because we already scaled our inputs
+        // when we computed (neg|pos)(1|2) above.
+        Distribution res1(neg_res, 1, pos_res, 1);
+        res = res1;
+    } else if (type == Type::double_dist || other.type == Type::double_dist) {
+        res = this->to_double_dist() + other.to_double_dist();
     } else {
-        Distribution res(Type::buckets);
-        half_sum(res, other, true);
-        other.half_sum(res, *this, false);
-        return res;
+        Distribution res1(Type::buckets);
+        half_sum(res1, other, true);
+        other.half_sum(res1, *this, false);
+        res = res1;
     }
+    res.set_name("+", *this, other);
+    return res;
 }
 
 /*
@@ -295,18 +498,18 @@ Distribution Distribution::operator-(Distribution& other)
 {
     check_empty();
     other.check_empty();
-    if (type != Type::double_lognorm || other.type != Type::double_lognorm) {
-        Distribution x = this->to_double_lognorm();
-        Distribution y = other.to_double_lognorm();
-        return x - y;
+    Distribution res;
+    if (type != Type::double_dist || other.type != Type::double_dist) {
+        Distribution x = this->to_double_dist();
+        Distribution y = other.to_double_dist();
+        res = x - y;
     } else {
-        // TODO: this is wrong
-        Distribution neg = this->neg + other.pos;
-        Distribution pos = this->pos + other.neg;
-        double pos_weight = (this->pos_weight + (1 - other->pos_weight)) / 2;
-        Distribution res(neg, pos, pos_weight);
-        return res;
+        Distribution flipped(*other.pos, other.pos_weight,
+                             *other.neg, other.neg_weight);
+        res = *this + flipped;
     }
+    res.set_name("-", *this, other);
+    return res;
 }
 
 /*
@@ -316,22 +519,25 @@ Distribution Distribution::operator*(const Distribution& other) const
 {
     check_empty();
     other.check_empty();
+    Distribution res;
     if (type == Type::lognorm
         && other.type == Type::lognorm) {
         double new_p_m = p_m * other.p_m;
         double new_p_s = sqrt(pow(p_s, 2) + pow(other.p_s, 2));
-        Distribution res(new_p_m, new_p_s);
-        return res;
-    } else if (type == Type::double_lognorm &&
-               other.type == Type::double_lognorm) {
-        Distribution neg = (this->pos * other.neg) + (this->neg * other.pos);
-        Distribution pos = (this->pos * other.pos) + (this->neg * other.neg);
-        double pos_weight = (this->pos_weight * other.pos_weight +
-                             (1 - this->pos_weight) * (1 - other.pos_weight));
-        Distribution res(neg, pos, pos_weight);
-        return res;
+        Distribution res1(new_p_m, new_p_s);
+        res = res1;
+    } else if (type == Type::double_dist &&
+               other.type == Type::double_dist) {
+        Distribution neg = (*this->pos * *other.neg) + (*this->neg * *other.pos);
+        Distribution pos = (*this->pos * *other.pos) + (*this->neg * *other.neg);
+        double neg_weight = this->pos_weight * other.neg_weight
+            + this->neg_weight * other.pos_weight;
+        double pos_weight = this->pos_weight * other.pos_weight
+            + this->neg_weight * other.neg_weight;
+        Distribution res1(neg, neg_weight, pos, pos_weight);
+        res = res1;
     } else if (type == Type::buckets && other.type == Type::buckets) {
-        Distribution res(Type::buckets);
+        Distribution res1(Type::buckets);
         for (int i = 0; i < NUM_BUCKETS; i++) {
             for (int j = 0; j < NUM_BUCKETS; j++) {
                 int index = bucket_index(bucket_value(i) * bucket_value(j));
@@ -343,13 +549,19 @@ Distribution Distribution::operator*(const Distribution& other) const
                 } else if (index < 0) {
                     index = 0;
                 }
-                res.buckets[index] += mass / get_delta(index);
+                res1.buckets[index] += mass / get_delta(index);
             }
         }
-        return res;
+        res = res1;
+    } else if (type == Type::double_dist || other.type == Type::double_dist) {
+        res = this->to_double_dist() * other.to_double_dist();
     } else {
-        error("Multiplication on unsupported distribution types.");
+        unsupported_operation("*", this, &other);
+        Distribution empty;
+        res = empty;
     }
+    res.set_name("*", *this, other);
+    return res;
 }
 
 /*
@@ -358,20 +570,18 @@ Distribution Distribution::operator*(const Distribution& other) const
 Distribution Distribution::operator*(double scalar) const
 {
     check_empty();
+    Distribution res;
     if (scalar == 0) {
         /* Return an empty distribution */
-        Distribution res;
-        return res;
-    }
-    if (type == Type::lognorm) {
-        Distribution res(p_m * scalar, p_s);
-        return res;
-    } else if (type == Type::double_lognorm) {
-        Distribution res(neg * scalar, pos * scalar, pos_weight);
-        return res;
+    } else if (type == Type::lognorm) {
+        Distribution res1(p_m * scalar, p_s);
+        res = res1;
+    } else if (type == Type::double_dist) {
+        Distribution res1(*neg * scalar, neg_weight, *pos * scalar, pos_weight);
+        res = res1;
     } else if (type == Type::buckets) {
         /* TODO: test this */
-        Distribution res(Type::buckets);
+        Distribution res1(Type::buckets);
         for (int i = 0; i < NUM_BUCKETS; i++) {
             int index = bucket_index(bucket_value(i) * scalar);
             double density = get(i);
@@ -380,12 +590,14 @@ Distribution Distribution::operator*(double scalar) const
             } else if (index < 0) {
                 index = 0;
             }
-            res.buckets[index] += density;
+            res1.buckets[index] += density;
         }
-        return res;
+        res = res1;
     } else {
-        error("Scalar multiplication on unsupported distribution type.");
+        unsupported_operation("scalar multiplication", this, NULL);
     }
+    res.set_name(to_string(scalar) + " * ", *this);
+    return res;
 }
 
 /*
@@ -401,12 +613,15 @@ Distribution Distribution::operator*(double scalar) const
 Distribution Distribution::reciprocal()
 {
     check_empty();
+    Distribution res;
     if (type == Type::lognorm) {
-        Distribution res(1 / p_m, p_s);
-        return res;
+        Distribution res1(1 / p_m, p_s);
+        res = res1;
     } else {
-        return this->to_lognorm().reciprocal();
+        res = this->to_lognorm().reciprocal();
     }
+    res.set_name("1 / ", *this);
+    return res;
 }
 
 /*
@@ -424,14 +639,14 @@ double Distribution::mean()
         /* see https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
         double sigma = log(10) * p_s;
         cached_mean = p_m * exp(0.5 * pow(sigma, 2));
-    } else if (type == Type::double_lognorm) {
-        cached_mean = pos->mean() * pos_weight - neg->mean() * (1 - pos_weight);
+    } else if (type == Type::double_dist) {
+        cached_mean = pos->mean() * pos_weight - neg->mean() * neg_weight;
     } else if (type == Type::buckets) {
         for (int i = 0; i < NUM_BUCKETS; i++) {
             cached_mean += bucket_value(i) * get(i) * get_delta(i);
         }
     } else {
-        error("Mean called on unsupported distribution type.");
+        unsupported_operation("mean", this, NULL);
     }
 
     return cached_mean;
@@ -451,12 +666,14 @@ double Distribution::variance()
         /* see https://en.wikipedia.org/wiki/Log-normal_distribution#Arithmetic_moments */
         double sigma = log(10) * p_s;
         cached_variance = pow(cached_mean, 2) * (exp(pow(sigma, 2)) - 1);
-    } else if (type == Type::double_lognorm) {
+    } else if (type == Type::double_dist) {
         /* The formula for variance is given by
          *   Var(X - Y) = E[X^2] - 2(Cov[X,Y] + E[X]E[Y]) + E[Y^2] - E[X-Y]^2
          */
-        double var1 = pos->variance();
-        double var2 = neg->variance();
+        double mean1 = pos->mean() * pos_weight;
+        double mean2 = neg->mean() * neg_weight;
+        double var1 = pos->variance() * pow(pos_weight, 2);
+        double var2 = neg->variance() * pow(neg_weight, 2);
         cached_variance = (var1 + pow(mean1, 2))
             - 2 * mean1 * mean2
             + (var2 + pow(mean2, 2))
@@ -468,7 +685,7 @@ double Distribution::variance()
         }
         cached_variance = sigma2 - pow(cached_mean, 2);
     } else {
-        error("Variance called on unsupported distribution type.");
+        unsupported_operation("variance", this, NULL);
     }
 
     return cached_variance;

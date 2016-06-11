@@ -17,6 +17,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -26,7 +27,7 @@
 #define EXP_OFFSET 100
 #define GAUSSIAN_90TH_PERCENTILE 1.2815515655
 
-enum class Type { empty, buckets, lognorm, double_lognorm };
+enum class Type { empty, buckets, lognorm, double_dist };
 
 class Distribution {
 private:
@@ -38,7 +39,7 @@ private:
     std::vector<double> prefix_sum() const;
     void half_op(std::function<double(double, double)> op, Distribution& res, const Distribution& other, bool include_diagonal) const;
     void half_sum(Distribution& res, const Distribution& other, bool include_diagonal) const;
-    void half_difference(Distribution& res, const Distribution& other, bool include_diagonal) const;
+    void half_difference(Distribution& res, const Distribution& other, bool include_diagonal, int sign) const;
     double integrand(Distribution& measurement, int index, bool ev) const;
     
 public:
@@ -58,21 +59,33 @@ public:
     double p_m; /* exp(mu) */
     double p_s; /* base-10 sigma */
 
-    /* params for double log-normal */
-    Distribution *neg;
-    Distribution *pos;
-    double pos_weight; /* between 0 and 1; neg weight is 1 - pos_weight */
+    /* Params for double log-normal or double
+     * buckets. Sub-distributions need to be pointers because a class
+     * can't contain itself.
+     */
+    Distribution *neg = NULL;
+    Distribution *pos = NULL;
+    double neg_weight;
+    double pos_weight; /* between 0 and 1 */
 
     Distribution();
     Distribution(Type type);
     Distribution(double p_m, double p_s);
     Distribution(Distribution neg, Distribution pos, double pos_weight);
+    Distribution(Distribution neg, double neg_weight,
+                 Distribution pos, double pos_weight);
     Distribution(std::function<double(double)> pdf);
     ~Distribution();
+    Distribution operator=(const Distribution& other);
     void check_empty() const;
+    Distribution fix_empty() const;
     double operator[](int index) const;
     double get(int index) const;
+    void set_name(std::string op, const Distribution& other);
+    void set_name(std::string op, const Distribution& left, const Distribution& right);
     Distribution to_lognorm();
+    Distribution to_double_dist() const;
+    Distribution scale_by(double scalar) const;
     Distribution operator+(const Distribution& other) const;
     Distribution operator-(Distribution& other);
     Distribution operator*(const Distribution& other) const;
