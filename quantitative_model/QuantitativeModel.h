@@ -95,6 +95,7 @@ public:
     Distribution reciprocal();
     double mean();
     double variance();
+    double mass();
     double integral(Distribution& measurement, bool ev, int sign=1) const;
     double posterior(Distribution& measurement) const;
 

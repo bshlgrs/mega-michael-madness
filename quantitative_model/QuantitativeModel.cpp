@@ -306,9 +306,9 @@ Distribution ai_safety_model_2(Table& t)
 Distribution ai_safety_estimate(Table& t)
 {
     double divisor = t["Model 1 weight"].p_m + t["Model 2 weight"].p_m;
-    return (ai_safety_model_1(t) * t["Model 1 weight"].p_m
-            + ai_safety_model_2(t) * t["Model 2 weight"].p_m)
-        * (1 / divisor);
+    Distribution model1 = ai_safety_model_1(t) * t["Model 1 weight"].p_m;
+    Distribution model2 = ai_safety_model_2(t) * t["Model 2 weight"].p_m;
+    return (model1 + model2) * (1 / divisor);
 }
 
 Distribution targeted_values_spreading_estimate(Table& t)

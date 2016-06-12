@@ -203,7 +203,8 @@ Distribution Distribution::operator=(const Distribution& other)
 
 void Distribution::check_empty() const
 {
-    if (type == Type::empty) {
+    if (type == Type::empty
+        && name.find("empty_neg_part") == string::npos) {
         cerr << "Warning: \"" << name << "\" is empty." << endl;
     }
 }
@@ -333,8 +334,6 @@ void Distribution::half_op(function<double(double, double)> op,
                            const Distribution& other,
                            bool include_diagonal) const
 {
-    // TODO: something in here is causing a memory error
-    
     ASSERT(this->type != Type::double_dist);
     ASSERT(other.type != Type::double_dist);
     ASSERT(res.type == Type::buckets);
@@ -401,6 +400,9 @@ Distribution Distribution::operator+(const Distribution& other) const
     } else if (other.type == Type::empty) {
         return *this;
     } else if (type == Type::double_dist && other.type == Type::double_dist) {
+        cout << "got weights " << pos_weight << ", " << neg_weight <<
+            ", " << other.pos_weight << ", " << other.neg_weight << endl;
+
         // Produce 4 distributions given by
         //   neg1 + neg2, pos1 + pos2, pos1 - neg2, pos2 - neg1
         // Then sum their buckets.
@@ -410,6 +412,8 @@ Distribution Distribution::operator+(const Distribution& other) const
         Distribution pos2 = *other.pos;
         Distribution sum_nn = neg1 + neg2;
         Distribution sum_pp = pos1 + pos2;
+        // TODO: these weights should definitely not all be 1. You end
+        // up double-counting the positive side.
         double nn_weight = this->neg_weight * other.neg_weight;
         double pp_weight = this->pos_weight * other.pos_weight;
         double np_weight = this->neg_weight * other.pos_weight;
@@ -447,6 +451,12 @@ Distribution Distribution::operator+(const Distribution& other) const
                 + sum_np_pos.get(i) * np_weight;
         }
 
+        double neg_weight = neg_res.mass();
+        double pos_weight = pos_res.mass();
+        neg_res = neg_res * (1 / neg_weight);
+        pos_res = pos_res * (1 / pos_weight);
+
+        
         // If both inputs used log-normal sub-dists, preserve that.
         if ((this->neg->type == Type::lognorm || this->neg->type == Type::empty)
             && (other.neg->type == Type::lognorm
@@ -459,12 +469,13 @@ Distribution Distribution::operator+(const Distribution& other) const
             pos_res = pos_res.to_lognorm();
         }
 
-        // Use weights 1 here because we already scaled our inputs
-        // when we computed (neg|pos)(1|2) above.
-        Distribution res(neg_res, 1, pos_res, 1);
+        // Make so that each sub-dist has probability mass 1
+        Distribution res(neg_res, neg_weight,
+                         pos_res, pos_weight);
         res.set_name("+", *this, other);
         return res;
     } else if (type == Type::double_dist || other.type == Type::double_dist) {
+        /* When one of the operands is a double dist, upcast the other. */
         Distribution res = this->to_double_dist() + other.to_double_dist();
         res.set_name("+", *this, other);
         return res;
@@ -690,6 +701,25 @@ double Distribution::variance()
     return cached_variance;
 }
 
+/* Returns the probability mass of the distribution. Should be 1 for
+ * anything except buckets in special situations.
+ */
+double Distribution::mass()
+{
+    if (type == Type::buckets) {
+        double total = 0;
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            total += get(i) * get_delta(i);
+        }
+        return total;
+    } else if (type == Type::lognorm) {
+        return 1;
+    } else {
+        unsupported_operation("mass", this, NULL);
+        return 0;
+    }
+}
+
 double Distribution::integrand(Distribution& measurement, int index,
                                bool ev, int sign) const
 {
@@ -705,14 +735,20 @@ double Distribution::integrand(Distribution& measurement, int index,
         // Assume that the true distribution has the same shape as
         // `measurement` but mean `u`. Then see what's the probability
         // of getting the measurement mean that we did.
-        Distribution assumed_true_dist = measurement * (u / measurement.mean());
-        update = assumed_true_dist.get(bucket_index(measurement.mean()));
+        // Distribution assumed_true_dist = measurement * (u / measurement.mean());
+        // update = assumed_true_dist.get(bucket_index(measurement.mean()));
+        double mean1 = measurement.mean();
+        double var = measurement.variance();
+        double expmu = mean1 / sqrt(1 + var / pow(mean1, 2));
+        double sigma = sqrt(log(1 + var / pow(mean1, 2)));
+        update = lognorm_pdf(u, sigma / log(10))(expmu);
     } else if (measurement.type == Type::lognorm) {
         // Use the PDF for the log-normal distribution parameterized
         // such that its mean is `u`.
         double sigma = log(10) * measurement.p_s;
         double mu = log(u) - 0.5 * pow(sigma, 2);
-        update = lognorm_pdf(exp(mu), measurement.p_s)(measurement.mean());
+        // update = lognorm_pdf(exp(mu), measurement.p_s)(measurement.mean());
+        update = lognorm_pdf(u, measurement.p_s)(measurement.p_m);
     } else if (measurement.type == Type::double_dist) {
         if (sign < 0) {
             return integrand(*measurement.neg, index, ev);
@@ -740,7 +776,6 @@ double Distribution::integral(Distribution& measurement, bool ev,
         double y_lo = integrand(measurement, 0, ev);
         double y_hi;
         double avg, delta;
-        // TODO: this should cover negative values too
         for (int i = 0; i < NUM_BUCKETS; i++) {
             y_hi = integrand(measurement, i, ev);
             avg = (y_lo + y_hi) / 2;
