@@ -21,13 +21,15 @@
 #include <string>
 #include <vector>
 
-#define NUM_BUCKETS 2000
+#define NUM_BUCKETS 1000
 #define CENTER_OFFSET ((NUM_BUCKETS) / 2)
 #define STEP 1.25
 #define EXP_OFFSET 100
 #define GAUSSIAN_90TH_PERCENTILE 1.2815515655
 
 enum class Type { empty, buckets, lognorm, double_dist };
+
+std::string type_to_string(Type type);
 
 class Distribution {
 private:
@@ -39,7 +41,7 @@ private:
     std::vector<double> prefix_sum() const;
     void half_op(std::function<double(double, double)> op, Distribution& res, const Distribution& other, bool include_diagonal) const;
     void half_sum(Distribution& res, const Distribution& other, bool include_diagonal) const;
-    void half_difference(Distribution& res, const Distribution& other, bool include_diagonal, int sign) const;
+    void half_difference(Distribution& res, const Distribution& other, bool include_diagonal) const;
     double integrand(Distribution& measurement, int index, bool ev) const;
     
 public:

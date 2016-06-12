@@ -63,14 +63,14 @@ millions of cages prevented,100,150
 proportion of change attributable to campaigns,0.7,1
 cage-free years per cage prevented,1,1
 values spreading effect of cage-free year relative to vegetarian-year,0.01,0.1
-Model 1 weight,0.5,0.5
-Model 2 weight,0.5,0.5
+Model 1 weight,0,0
+Model 2 weight,1,1
 cost per AI researcher,70000,150000
 P(AI-related extinction),0.03,0.3
 size of FAI community when AGI created,200,10000
 AI researcher multiplicative effect,1,3
 proportion of bad scenarios averted by doubling total research,0.1,0.7
-hours to solve AI safety,1000000,10000000000
+hours to solve AI safety,2e+5,2e+7
 hours per year per AI researcher,2000,2000
 P(friendly AI gets built),0.1,0.5
 P(AI researchers' values matter),0.3,0.5
