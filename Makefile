@@ -8,4 +8,4 @@ serve:
 	bundle exec ruby server.rb 8080
 
 test:
-	bundle exec ruby server.rb 8787
+	bundle exec ruby server.rb 8787 a.out

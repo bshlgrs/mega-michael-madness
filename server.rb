@@ -27,7 +27,13 @@ post '/eval' do
 
   File.write("/tmp/input#{magic_number}", input_to_program.join("\n"))
 
-  res = `./quantitative_model/run-backend /tmp/input#{magic_number}`
+  executable = "run-backend"
+  if ARGV.length > 1
+    executable = ARGV[1]
+  end
+  puts "******* executable is #{executable} *********"
+
+  res = `./quantitative_model/#{executable} /tmp/input#{magic_number}`
   `mv -f /tmp/input#{magic_number} ./quantitative_model/input.txt`
   json(handle_data_lines(res.split("\n")))
 end
@@ -44,7 +50,9 @@ def handle_data_lines(lines)
   {}.tap do |data|
     lines.each do |line|
       pieces = line.split(",")
-      if pieces.length == 2
+      if pieces.length == 1
+        # This line is a warning message or something; skip it
+      elsif pieces.length == 2
         data[pieces[0]] = {
           type: "scalar",
           value: pieces[1].to_f
@@ -56,7 +64,7 @@ def handle_data_lines(lines)
           high: pieces[2].to_f
         }
       else
-        fail
+        raise "Cannot handle line \"#{line}\""
       end
     end
   end

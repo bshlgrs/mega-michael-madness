@@ -1,7 +1,9 @@
 * Code Features
-** TODO Allow outcome distributions to be both positive and negative
+** Allow outcome distributions to be both positive and negative
 It may be better to use as a two-sided log-normal distribution (i.e. a regular log-normal distribution combined with the same distribution flipped over the Y axis). Unclear about the details.
-*** TODO Improve performance of bucket multiplication (FFT?)
+*** DONE Implement core functionality
+*** TODO Rewrite front-end to allow sign changes and check them instead of hard-coding things as positive or negative
+** TODO Improve performance of bucket multiplication (FFT?)
 ** TODO Write function to sum multiple distributions where you specify at runtime which are positive or negative
 * Model Improvements
 ** TODO Break down effects on factory-farmed animals into multiple categories for different types of animals

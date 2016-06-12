@@ -400,9 +400,6 @@ Distribution Distribution::operator+(const Distribution& other) const
     } else if (other.type == Type::empty) {
         return *this;
     } else if (type == Type::double_dist && other.type == Type::double_dist) {
-        cout << "got weights " << pos_weight << ", " << neg_weight <<
-            ", " << other.pos_weight << ", " << other.neg_weight << endl;
-
         // Produce 4 distributions given by
         //   neg1 + neg2, pos1 + pos2, pos1 - neg2, pos2 - neg1
         // Then sum their buckets.
