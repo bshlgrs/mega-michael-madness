@@ -690,25 +690,35 @@ double Distribution::variance()
     return cached_variance;
 }
 
-double Distribution::integrand(Distribution& measurement, int index, bool ev) const
+double Distribution::integrand(Distribution& measurement, int index,
+                               bool ev, int sign) const
 {
     double u = bucket_value(index);
     double prior = get(index);
     double update = 0;
+    if (measurement.type != Type::double_dist && sign < 0) {
+        // Any non-double dist has zero probability mass on the
+        // negative side
+        return 0;
+    }
     if (measurement.type == Type::buckets) {
-        /* approximate `measurement` with log-normal dist */
-        // TODO: just do this directly numerically
-        double mean1 = measurement.mean();
-        double var = measurement.variance();
-        double expmu = mean1 / sqrt(1 + var / pow(mean1, 2));
-        double sigma = sqrt(log(1 + var / pow(mean1, 2)));
-        update = lognorm_pdf(u, sigma / log(10))(expmu);
+        // Assume that the true distribution has the same shape as
+        // `measurement` but mean `u`. Then see what's the probability
+        // of getting the measurement mean that we did.
+        Distribution assumed_true_dist = measurement * (u / measurement.mean());
+        update = assumed_true_dist.get(bucket_index(measurement.mean()));
     } else if (measurement.type == Type::lognorm) {
         // Use the PDF for the log-normal distribution parameterized
         // such that its mean is `u`.
         double sigma = log(10) * measurement.p_s;
         double mu = log(u) - 0.5 * pow(sigma, 2);
         update = lognorm_pdf(exp(mu), measurement.p_s)(measurement.mean());
+    } else if (measurement.type == Type::double_dist) {
+        if (sign < 0) {
+            return integrand(*measurement.neg, index, ev);
+        } else {
+            return integrand(*measurement.pos, index, ev);
+        }
     } else {
         unsupported_operation("integrand", &measurement, NULL);
     }
@@ -720,7 +730,8 @@ double Distribution::integrand(Distribution& measurement, int index, bool ev) co
     return res;
 }
 
-double Distribution::integral(Distribution& measurement, bool ev) const
+double Distribution::integral(Distribution& measurement, bool ev,
+                              int sign) const
 {
     if (type == Type::buckets || type == Type::lognorm) {
         double total = 0;
@@ -742,9 +753,9 @@ double Distribution::integral(Distribution& measurement, bool ev) const
         }
         return total;
     } else if (type == Type::double_dist) {
-        double pos_int = pos->integral(measurement, ev);
-        double neg_int = neg->integral(measurement, ev);
-        return pos_int - neg_int;
+        double pos_int = pos->integral(measurement, ev,  1);
+        double neg_int = neg->integral(measurement, ev, -1);
+        return pos_int + neg_int;
     } else {
         unsupported_operation("integral", this, NULL);
         return 0; // to silence compiler warning even though this never happens

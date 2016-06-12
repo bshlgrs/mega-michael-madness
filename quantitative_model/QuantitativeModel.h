@@ -42,7 +42,7 @@ private:
     void half_op(std::function<double(double, double)> op, Distribution& res, const Distribution& other, bool include_diagonal) const;
     void half_sum(Distribution& res, const Distribution& other, bool include_diagonal) const;
     void half_difference(Distribution& res, const Distribution& other, bool include_diagonal) const;
-    double integrand(Distribution& measurement, int index, bool ev) const;
+    double integrand(Distribution& measurement, int index, bool ev, int sign=1) const;
     
 public:
     std::function<double(double)> pdf;
@@ -95,7 +95,7 @@ public:
     Distribution reciprocal();
     double mean();
     double variance();
-    double integral(Distribution& measurement, bool ev) const;
+    double integral(Distribution& measurement, bool ev, int sign=1) const;
     double posterior(Distribution& measurement) const;
 
     static Distribution lognorm_from_mean_and_variance(double mean, double var);
