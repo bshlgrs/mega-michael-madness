@@ -704,9 +704,13 @@ double Distribution::integrand(Distribution& measurement, int index, bool ev) co
         double sigma = sqrt(log(1 + var / pow(mean1, 2)));
         update = lognorm_pdf(u, sigma / log(10))(expmu);
     } else if (measurement.type == Type::lognorm) {
-        update = lognorm_pdf(u, measurement.p_s)(measurement.p_m);
+        // Use the PDF for the log-normal distribution parameterized
+        // such that its mean is `u`.
+        double sigma = log(10) * measurement.p_s;
+        double mu = log(u) - 0.5 * pow(sigma, 2);
+        update = lognorm_pdf(exp(mu), measurement.p_s)(measurement.mean());
     } else {
-        error("Integrand undefined for given measurement distribution type.");
+        unsupported_operation("integrand", &measurement, NULL);
     }
 
     double res = prior * update;
@@ -718,24 +722,33 @@ double Distribution::integrand(Distribution& measurement, int index, bool ev) co
 
 double Distribution::integral(Distribution& measurement, bool ev) const
 {
-    double total = 0;
-    double x_lo = pow(STEP, -EXP_OFFSET);
-    double x_hi = x_lo * STEP;
-    double y_lo = integrand(measurement, 0, ev);
-    double y_hi;
-    double avg, delta;
-    // TODO: this should cover negative values too
-    for (int i = 0; i < NUM_BUCKETS; i++) {
-        y_hi = integrand(measurement, i, ev);
-        avg = (y_lo + y_hi) / 2;
-        delta = x_hi - x_lo;
-        total += avg * delta;
+    if (type == Type::buckets || type == Type::lognorm) {
+        double total = 0;
+        double x_lo = pow(STEP, -EXP_OFFSET);
+        double x_hi = x_lo * STEP;
+        double y_lo = integrand(measurement, 0, ev);
+        double y_hi;
+        double avg, delta;
+        // TODO: this should cover negative values too
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            y_hi = integrand(measurement, i, ev);
+            avg = (y_lo + y_hi) / 2;
+            delta = x_hi - x_lo;
+            total += avg * delta;
 
-        x_lo = x_hi;
-        x_hi = x_hi * STEP;
-        y_lo = y_hi;
+            x_lo = x_hi;
+            x_hi = x_hi * STEP;
+            y_lo = y_hi;
+        }
+        return total;
+    } else if (type == Type::double_dist) {
+        double pos_int = pos->integral(measurement, ev);
+        double neg_int = neg->integral(measurement, ev);
+        return pos_int - neg_int;
+    } else {
+        unsupported_operation("integral", this, NULL);
+        return 0; // to silence compiler warning even though this never happens
     }
-    return total;
 }
 
 double Distribution::posterior(Distribution& measurement) const
