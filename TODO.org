@@ -28,4 +28,3 @@ Or figure out a better way to account for the fact that estimates tend to be too
 * Bugs
 ** TODO AI Safety model 2 should multiply by P(AI-related extinction)
 ** TODO Mixing models should do a mixture, not a sum
-** TODO In "EV of far future", "factory farming" + "hedonium" has neg_weight = pos_weight = 0. It happens because of weights very close to 0 (10^-13) that should be 0; safe_reciprocal() does the wrong thing for these.

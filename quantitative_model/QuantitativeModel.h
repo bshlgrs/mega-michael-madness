@@ -89,12 +89,13 @@ public:
     Distribution to_lognorm();
     Distribution to_double_dist() const;
     Distribution negate() const;
+    Distribution reciprocal();
     Distribution scale_by(double scalar) const;
     Distribution operator+(const Distribution& other) const;
     Distribution operator-(Distribution& other);
     Distribution operator*(const Distribution& other) const;
     Distribution operator*(double scalar) const;
-    Distribution reciprocal();
+    Distribution mixture(double weight1, const Distribution& other, double weight2);
     double mean();
     double variance();
     double log_stdev();

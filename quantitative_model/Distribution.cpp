@@ -79,7 +79,6 @@ function<double(double)> lognorm_pdf(double p_m, double p_s)
  */
 int bucket_index(double x)
 {
-    // return (int) (log(x) / log(STEP) - 0.5) + EXP_OFFSET; // I believe this is more mathematically accurate but Excel does it the other way
     return (int) (log(x) / log(STEP)) + EXP_OFFSET;
 }
 
@@ -106,6 +105,19 @@ double bucket_min_value(int index)
 double get_delta(int index)
 {
     return pow(STEP, index - EXP_OFFSET + 1) - pow(STEP, index - EXP_OFFSET);
+}
+
+/*
+ * Helper function for when `res` is the result of an operation on
+ * `lhs` and `rhs`. If `lhs` and `rhs` are both log-normal, convert
+ * `res` to log-normal.
+ */
+void preserve_lognormal(Distribution& res, const Distribution& lhs,
+                        const Distribution& rhs)
+{
+    if (lhs.type == Type::lognorm && rhs.type == Type::lognorm) {
+        res = res.to_lognorm();
+    }
 }
 
 /*
@@ -312,6 +324,30 @@ Distribution Distribution::negate() const
 }
 
 /*
+ * Returns the log-normally-distributed reciprocal of this
+ * distribution. That is, if this distribution has probably P at
+ * location X, the reciprocal distribution has probability P at
+ * location 1/X.
+ * 
+ * If this distribution is not log-normal, first converts it to a
+ * log-normal approximation. But you probably shouldn't be calling
+ * it on anything that's not log-normal anyway.
+ */
+Distribution Distribution::reciprocal()
+{
+    check_empty();
+    Distribution res;
+    if (type == Type::lognorm) {
+        Distribution res1(1 / p_m, p_s);
+        res = res1;
+    } else {
+        res = this->to_lognorm().reciprocal();
+    }
+    res.set_name("1 / ", *this);
+    return res;
+}
+
+/*
  * For a bucket distribution, scales the probability densities in each bucket.
  */
 Distribution Distribution::scale_by(double scalar) const
@@ -474,14 +510,8 @@ Distribution Distribution::operator+(const Distribution& other) const
         pos_res = pos_res.scale_by(safe_reciprocal(pos_weight));
         
         // If both inputs used log-normal sub-dists, preserve that.
-        if (this->neg->type == Type::lognorm
-            && other.neg->type == Type::lognorm) {
-            neg_res = neg_res.to_lognorm();
-        }
-        if (this->pos->type == Type::lognorm
-            && other.pos->type == Type::lognorm) {
-            pos_res = pos_res.to_lognorm();
-        }
+        preserve_lognormal(neg_res, *this->neg, *other.neg);
+        preserve_lognormal(pos_res, *this->pos, *other.pos);
 
         // Make so that each sub-dist has probability mass 1
         Distribution res(neg_res, neg_weight,
@@ -622,27 +652,36 @@ Distribution Distribution::operator*(double scalar) const
 }
 
 /*
- * Returns the log-normally-distributed reciprocal of this
- * distribution. That is, if this distribution has probably P at
- * location X, the reciprocal distribution has probability P at
- * location 1/X.
- * 
- * If this distribution is not log-normal, first converts it to a
- * log-normal approximation. But you probably shouldn't be calling
- * it on anything that's not log-normal anyway.
+ * Returns the mixture of two distributions, defined as
+ *   Z = Mixture(X, Y) if
+ *     P(Z = t) = w_1 P(X = t) + w_2 P(Y = t)
+ * for weights `w_1`, `w_2`.
  */
-Distribution Distribution::reciprocal()
+Distribution Distribution::mixture(double weight1, const Distribution& other,
+                                   double weight2)
 {
-    check_empty();
-    Distribution res;
-    if (type == Type::lognorm) {
-        Distribution res1(1 / p_m, p_s);
-        res = res1;
+    double divisor = weight1 + weight2;
+    weight1 /= divisor;
+    weight2 /= divisor;
+    if (type == Type::double_dist) {
+        double res_neg_weight = this->neg_weight * weight1 + other.neg_weight * weight2;
+        double res_pos_weight = this->pos_weight * weight1 + other.pos_weight * weight2;
+        Distribution res(neg->mixture(this->neg_weight * weight1, *other.neg,
+                                      other.neg_weight * weight2),
+                         res_neg_weight,
+                         pos->mixture(this->pos_weight * weight1, *other.pos,
+                                      other.pos_weight * weight2),
+                         res_pos_weight);
+        return res;
     } else {
-        res = this->to_lognorm().reciprocal();
+        Distribution res(Type::buckets);
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+            res.buckets[i] = get(i) * weight1 + other.get(i) * weight2;
+        }
+
+        preserve_lognormal(res, *this, other);
+        return res;
     }
-    res.set_name("1 / ", *this);
-    return res;
 }
 
 /*
