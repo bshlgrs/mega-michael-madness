@@ -203,25 +203,8 @@ Distribution Distribution::operator=(const Distribution& other)
 
 void Distribution::check_empty() const
 {
-    if (type == Type::empty
-        && name.find("empty_neg_part") == string::npos) {
-        cerr << "Warning: \"" << name << "\" is empty." << endl;
-    }
-}
-
-/*
- * If `this` is empty, converts it into a bucket distribution where
- * the probability density in each bucket is 0. This is desired
- * behavior in some circumstances.
- */
-Distribution Distribution::fix_empty() const
-{
     if (type == Type::empty) {
-        Distribution res = *this;
-        res.type = Type::buckets;
-        return res;
-    } else {
-        return *this;
+        cerr << "Warning: \"" << name << "\" is empty." << endl;
     }
 }
 
@@ -263,6 +246,12 @@ Distribution Distribution::lognorm_from_mean_and_variance(
     double mean,
     double var)
 {
+    if (mean == 0) {
+        /* Special case to handle distributions with probability
+           density 0 everywhere. Otherwise we get p_m = p_s = NaN. */
+        Distribution res(0, 0);
+        return res;
+    }
     double p_m = mean / sqrt(1 + var / pow(mean, 2));
     double p_s = sqrt(log(1 + var / pow(mean, 2))) / log(10);
     Distribution res(p_m, p_s);
@@ -272,11 +261,18 @@ Distribution Distribution::lognorm_from_mean_and_variance(
 /*
  * Approximates this distribution using a log-normal distribution. If
  * already lognormal, returns itself.
+ *
+ * If this distribution has a negative part, returns a double dist of
+ * two log-normal distributions.
  */
 Distribution Distribution::to_lognorm()
 {
     if (type == Type::lognorm) {
         return *this;
+    } else if (type == Type::double_dist) {
+        Distribution res(neg->to_lognorm(), neg_weight,
+                         pos->to_lognorm(), pos_weight);
+        return res;
     } else {
         Distribution res = Distribution::lognorm_from_mean_and_variance(
             this->mean(), this->variance());
@@ -290,11 +286,28 @@ Distribution Distribution::to_double_dist() const
     if (type == Type::double_dist) {
         return *this;
     } else {
-        Distribution empty;
-        empty.set_name("empty_neg_part", *this);
-        Distribution res(empty, *this, 1);
+        /* Make the other half be a log-normal distribution with 0
+           probability mass everywhere. */
+        Distribution zero(0, 0);
+        zero.set_name("zero_half", *this);
+        Distribution res(zero, *this, 1);
         res.set_name("to_double_dist", *this);
         return res;
+    }
+}
+
+/*
+ * Flips the positive and negative halves of a distribution.
+ */
+Distribution Distribution::negate() const
+{
+    if (type == Type::double_dist) {
+        Distribution flipped(*pos, pos_weight,
+                             *neg, neg_weight);
+        flipped.set_name("-", *this);
+        return flipped;
+    } else {
+        return to_double_dist().negate();
     }
 }
 
@@ -385,19 +398,26 @@ void Distribution::half_difference(Distribution& res, const Distribution& other,
 }
 
 /*
+ * Returns 1 / x. If x == 0, returns 0.
+ */
+double safe_reciprocal(double x)
+{
+    return x == 0 ? 0 : 1 / x;
+}
+
+/*
  * Calculates the sum of two probability distributions.
  */
 Distribution Distribution::operator+(const Distribution& other) const
 {
     /* Raises a warning on empty even though behavior here is
-     * well-defined. Distributions could be empty on purpose or
-     * because they are uninitialized.
-     */
+       well-defined. Distributions could be empty on purpose or
+       because they are uninitialized. */
     check_empty();
     other.check_empty();
-    if (type == Type::empty) {
+    if (type == Type::lognorm && this->p_m == 0) {
         return other;
-    } else if (other.type == Type::empty) {
+    } else if (other.type == Type::lognorm && other.p_m == 0) {
         return *this;
     } else if (type == Type::double_dist && other.type == Type::double_dist) {
         // Produce 4 distributions given by
@@ -450,19 +470,16 @@ Distribution Distribution::operator+(const Distribution& other) const
 
         double neg_weight = neg_res.mass();
         double pos_weight = pos_res.mass();
-        neg_res = neg_res * (1 / neg_weight);
-        pos_res = pos_res * (1 / pos_weight);
-
+        neg_res = neg_res.scale_by(safe_reciprocal(neg_weight));
+        pos_res = pos_res.scale_by(safe_reciprocal(pos_weight));
         
         // If both inputs used log-normal sub-dists, preserve that.
-        if ((this->neg->type == Type::lognorm || this->neg->type == Type::empty)
-            && (other.neg->type == Type::lognorm
-                || other.neg->type == Type::empty)) {
+        if (this->neg->type == Type::lognorm
+            && other.neg->type == Type::lognorm) {
             neg_res = neg_res.to_lognorm();
         }
-        if ((this->pos->type == Type::lognorm || this->pos->type == Type::empty)
-            && (other.pos->type == Type::lognorm
-                || other.pos->type == Type::empty)) {
+        if (this->pos->type == Type::lognorm
+            && other.pos->type == Type::lognorm) {
             pos_res = pos_res.to_lognorm();
         }
 
@@ -495,9 +512,7 @@ Distribution Distribution::operator-(Distribution& other)
     // Don't need `check_empty` because we just call `+` which covers that
     Distribution res;
     if (type == Type::double_dist && other.type == Type::double_dist) {
-        Distribution flipped(*other.pos, other.pos_weight,
-                             *other.neg, other.neg_weight);
-        flipped.set_name("flipped", other);
+        Distribution flipped = other.negate();
         res = *this + flipped;
         res.pos->name = this->name;
         res.neg->name = other.name;
@@ -516,15 +531,12 @@ Distribution Distribution::operator-(Distribution& other)
 Distribution Distribution::operator*(const Distribution& other) const
 {
     /* Raises a warning on empty even though behavior here is
-     * well-defined. Distributions could be empty on purpose or
-     * because they are uninitialized.
-     */
+       well-defined. Distributions could be empty on purpose or
+       because they are uninitialized. */
     check_empty();
     other.check_empty();
     Distribution res;
-    if (type == Type::empty || other.type == Type::empty) {
-        /* If one of inputs is empty, result should be empty as well */
-    } else if (type == Type::lognorm
+    if (type == Type::lognorm
         && other.type == Type::lognorm) {
         double new_p_m = p_m * other.p_m;
         double new_p_s = sqrt(pow(p_s, 2) + pow(other.p_s, 2));
@@ -534,6 +546,11 @@ Distribution Distribution::operator*(const Distribution& other) const
                other.type == Type::double_dist) {
         Distribution neg = (*this->pos * *other.neg) + (*this->neg * *other.pos);
         Distribution pos = (*this->pos * *other.pos) + (*this->neg * *other.neg);
+        if (this->pos->type == Type::lognorm && this->neg->type == Type::lognorm
+            && other.pos->type == Type::lognorm && other.neg->type == Type::lognorm) {
+            neg = neg.to_lognorm();
+            pos = pos.to_lognorm();
+        }
         double neg_weight = this->pos_weight * other.neg_weight
             + this->neg_weight * other.pos_weight;
         double pos_weight = this->pos_weight * other.pos_weight
@@ -576,7 +593,7 @@ Distribution Distribution::operator*(double scalar) const
     check_empty();
     Distribution res;
     if (scalar == 0) {
-        /* Return an empty distribution */
+        res = Distribution(0, 0);
     } else if (type == Type::lognorm) {
         Distribution res1(p_m * scalar, p_s);
         res = res1;
@@ -672,8 +689,7 @@ double Distribution::variance()
         cached_variance = pow(cached_mean, 2) * (exp(pow(sigma, 2)) - 1);
     } else if (type == Type::double_dist) {
         /* The formula for variance is given by
-         *   Var(X - Y) = E[X^2] - 2(Cov[X,Y] + E[X]E[Y]) + E[Y^2] - E[X-Y]^2
-         */
+             Var(X - Y) = E[X^2] - 2(Cov[X,Y] + E[X]E[Y]) + E[Y^2] - E[X-Y]^2 */
         double mean1 = pos->mean() * pos_weight;
         double mean2 = neg->mean() * neg_weight;
         double var1 = pos->variance() * pow(pos_weight, 2);
@@ -696,6 +712,23 @@ double Distribution::variance()
     }
 
     return cached_variance;
+}
+
+/* Returns the log10-standard deviation of the distribution (same as
+ * `p_s` for log-normal dists).
+ */
+double Distribution::log_stdev()
+{
+    if (type == Type::lognorm) {
+        return p_s;
+    } else if (type == Type::buckets) {
+        return to_lognorm().p_s;
+    } else if (type == Type::double_dist) {
+        return lognorm_from_mean_and_variance(mean(), variance()).p_s;
+    } else {
+        unsupported_operation("log_stdev", this, NULL);
+        return 0;
+    }
 }
 
 /* Returns the probability mass of the distribution. Should be 1 for
@@ -742,8 +775,8 @@ double Distribution::integrand(Distribution& measurement, int index,
     } else if (measurement.type == Type::lognorm) {
         // Use the PDF for the log-normal distribution parameterized
         // such that its mean is `u`.
-        double sigma = log(10) * measurement.p_s;
-        double mu = log(u) - 0.5 * pow(sigma, 2);
+        // double sigma = log(10) * measurement.p_s;
+        // double mu = log(u) - 0.5 * pow(sigma, 2);
         // update = lognorm_pdf(exp(mu), measurement.p_s)(measurement.mean());
         update = lognorm_pdf(u, measurement.p_s)(measurement.p_m);
     } else if (measurement.type == Type::double_dist) {

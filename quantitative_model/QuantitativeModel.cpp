@@ -12,6 +12,7 @@
  */
 
 #include "QuantitativeModel.h"
+#include <cassert>
 
 using namespace std;
 
@@ -49,10 +50,21 @@ public:
  */
 Distribution CI(double lo, double hi)
 {
+    assert(lo <= hi);
+    double lo_sign = lo < 0 ? -1 : 1;
+    double hi_sign = hi < 0 ? -1 : 1;
     double p_m = sqrt(lo * hi);
     double p_s = sqrt(log(hi / lo) / log(10) / 2 / GAUSSIAN_90TH_PERCENTILE);
-    Distribution res(p_m, p_s);
-    return res;
+    if (lo_sign != hi_sign) {
+        error("Interval (" + to_string(lo) + ", " + to_string(hi)
+              + ") should not cross 0.");
+    }
+    Distribution lognorm(p_m, p_s);
+    if (lo_sign < 0 && hi_sign < 0) {
+        return lognorm.negate();
+    } else {
+        return lognorm;
+    }
 }
 
 /*
@@ -62,6 +74,47 @@ Distribution CI(double lo, double hi)
 Distribution CI(double singleton)
 {
     return CI(singleton, singleton);
+}
+
+/*
+ * Reads a list of confidence intervals into Distributions.
+ *
+ * Scalar values produce a log-normal distribution with p_m = <value>,
+ * p_s = 0; use Distribution::p_m to access the value of the scalar.
+*/
+Table read_input(string filename)
+{
+    Table t;
+    ifstream file(filename);
+    string key, comments, low_CI, high_CI;
+
+    if (!file.good()) {
+        cerr << "I wasn't able to open the input file (" << filename << "), so I'm exiting." << endl;
+        exit(1);
+    }
+
+    while (file.good()) {
+        getline(file, key, ',');
+        getline(file, low_CI, ',');
+        getline(file, high_CI);
+        if (key.length()) {
+            t[key] = CI(stof(low_CI), stof(high_CI));
+        }
+    }
+
+    return t;
+}
+
+void set_prior(Table& t)
+{
+    t["lognorm prior"] = Distribution(t["log-normal prior mu"].p_m,
+                                      t["log-normal prior sigma"].p_m);
+    t["Pareto prior"] = Distribution(
+        lomax_pdf(t["Pareto prior median"].p_m,
+                  t["Pareto prior alpha"].p_m));
+    t["prior"] = (t["lognorm prior"] * t["log-normal weight"].p_m
+                          + t["Pareto prior"] * t["Pareto weight"].p_m)
+        * (1 / (t["log-normal weight"].p_m + t["Pareto weight"].p_m));
 }
 
 void set_globals(Table& t)
@@ -113,25 +166,6 @@ void set_EV_far_future(Table& t)
     t["P(ems exist)"] =
         t["P(fill universe with computers)"] * t["P(ems)"];
 
-    t["human weighted utility"] =
-        t["P(humans exist)"]
-        * t["utility per wealthy human"]
-        * t["humans per star"]
-        * t["biology star-years in far future"];
-    t["hedonium weighted utility"] =
-        t["P(hedonium exists)"]
-        * t["utility per hedonium"]
-        * t["computer brains in far future"];
-    t["em weighted utility"] =
-        t["P(ems exist)"]
-        * t["utility per em"]
-        * t["computer brains in far future"];
-
-    t["pos EV of far future"] =
-        (t["human weighted utility"]
-         + t["hedonium weighted utility"]
-         + t["em weighted utility"]).to_lognorm();
-    
     t["P(factory farming exists)"] =
         t["P(fill universe with biology)"]
         * t["P(society doesn't care about animals)"]
@@ -150,6 +184,11 @@ void set_EV_far_future(Table& t)
     t["P(dolorium exists)"] =
         t["P(fill universe with computers)"] * t["P(dolorium)"];
 
+    t["human weighted utility"] =
+        t["P(humans exist)"]
+        * t["utility per wealthy human"]
+        * t["humans per star"]
+        * t["biology star-years in far future"];
     t["factory farming weighted utility"] =
         t["P(factory farming exists)"]
         * t["utility per factory-farmed animal"]
@@ -171,6 +210,14 @@ void set_EV_far_future(Table& t)
         * t["simulations per insect"]
         * t["biology star-years in far future"]
         * t["insects per star"];
+    t["hedonium weighted utility"] =
+        t["P(hedonium exists)"]
+        * t["utility per hedonium"]
+        * t["computer brains in far future"];
+    t["em weighted utility"] =
+        t["P(ems exist)"]
+        * t["utility per em"]
+        * t["computer brains in far future"];
     t["paperclip weighted utility"] =
         t["P(paperclips exist)"]
         * t["utility per paperclip"]
@@ -180,66 +227,32 @@ void set_EV_far_future(Table& t)
         * t["utility per dolorium"]
         * t["computer brains in far future"];
 
-    t["neg EV of far future"] =
-        (t["factory farming weighted utility"]
-         + t["wild vertebrate weighted utility"]
-         + t["insect weighted utility"]
-         + t["simulation weighted utility"]
-         + t["paperclip weighted utility"]
-         + t["dolorium weighted utility"]).to_lognorm();
+    t["EV of far future"] = (
+        t["human weighted utility"]
+        + t["factory farming weighted utility"]
+        + t["wild vertebrate weighted utility"]
+        + t["insect weighted utility"]
+        + t["simulation weighted utility"]
+        + t["hedonium weighted utility"]
+        + t["em weighted utility"]
+        + t["paperclip weighted utility"]
+        + t["dolorium weighted utility"]
+        );
 
-    t["EV of far future"] =
-        t["pos EV of far future"]
-        - t["neg EV of far future"];
-    
-    t["weighted utility of values spreading"] = 
-        (t["hedonium scenarios caused by changing values"]
+    t["weighted utility of values spreading"] = (
+        t["hedonium scenarios caused by changing values"]
         * t["hedonium weighted utility"]
         + t["dolorium scenarios prevented by changing values"]
-        * t["dolorium weighted utility"]
+        * t["dolorium weighted utility"].negate()
         + t["factory farming scenarios prevented by changing values"]
-        * t["factory farming weighted utility"]
+        * t["factory farming weighted utility"].negate()
         + t["wild vertebrate suffering prevented by changing values"]
-        * t["wild vertebrate weighted utility"]
+        * t["wild vertebrate weighted utility"].negate()
         + t["insect suffering prevented by changing values"]
-        * t["insect weighted utility"]
+        * t["insect weighted utility"].negate()
         + t["suffering simulations prevented by changing values"]
-         * t["simulation weighted utility"]).to_lognorm();
-}
-
-/*
- * Reads a list of confidence intervals into Distributions.
- *
- * Scalar values produce a log-normal distribution with p_m = <value>,
- * p_s = 0; use Distribution::p_m to access the value of the scalar.
-*/
-Table read_input(string filename)
-{
-    bool WARN_ABOUT_MISSING_KEYS_SAVED = WARN_ABOUT_MISSING_KEYS; WARN_ABOUT_MISSING_KEYS = false;
-
-    Table t;
-    ifstream file(filename);
-    string key, comments, low_CI, high_CI;
-
-    if (!file.good()) {
-        cerr << "I wasn't able to open the input file (" << filename << "), so I'm exiting." << endl;
-        exit(1);
-    }
-
-    while (file.good()) {
-        getline(file, key, ',');
-        getline(file, low_CI, ',');
-        getline(file, high_CI);
-        if (key.length()) {
-            t[key] = CI(stof(low_CI), stof(high_CI));
-        }
-    }
-
-    set_globals(t);
-    set_EV_far_future(t);
-
-    WARN_ABOUT_MISSING_KEYS = WARN_ABOUT_MISSING_KEYS_SAVED;
-    return t;
+        * t["simulation weighted utility"].negate()
+                                                 );
 }
 
 Distribution veg_estimate_direct(Table& t)
@@ -247,7 +260,7 @@ Distribution veg_estimate_direct(Table& t)
 
     Distribution utility_estimate =
         t["years factory farming prevented per $1000"]
-        * t["utility per factory-farmed animal"];
+        * t["utility per factory-farmed animal"].negate();
     return utility_estimate;
 }
 
@@ -266,8 +279,7 @@ Distribution veg_estimate_ff(Table& t)
         (t["veg-years directly created per $1000"]
          + t["veg-years indirectly created per $1000"]).to_lognorm();
 
-    return
-        t["weighted utility of values spreading"]
+    return t["weighted utility of values spreading"]
         * t["memetically relevant humans"].reciprocal()
         * t["veg-years permanently created per $1000"];
 }
@@ -327,9 +339,9 @@ Distribution targeted_values_spreading_estimate(Table& t)
 
 void print_results(string name, Distribution prior, Distribution estimate)
 {
-    Distribution ln = estimate.to_lognorm(); // so p_m and p_s are well-defined
-    cout << name << " estimate mean," << ln.mean() << endl;
-    cout << name << " estimate p_s," << ln.p_s << endl;
+    Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
+    cout << name << " estimate mean," << estimate.mean() << endl;
+    cout << name << " estimate p_s," << ln.log_stdev() << endl;
     cout << name << " posterior," << prior.posterior(estimate) << endl;
 }
 
@@ -337,16 +349,13 @@ int main(int argc, char *argv[])
 {
     try {
         Table t = read_input(argv[1]);
-        Distribution lognorm_prior(t["log-normal prior mu"].p_m,
-                                   t["log-normal prior sigma"].p_m);
-        Distribution pareto_prior(
-           lomax_pdf(t["Pareto prior median"].p_m,
-                     t["Pareto prior alpha"].p_m));
-        Distribution prior = (lognorm_prior * t["log-normal weight"].p_m
-                              + pareto_prior * t["Pareto weight"].p_m)
-            * (1 / (t["log-normal weight"].p_m + t["Pareto weight"].p_m));
+        set_prior(t);
+        set_globals(t);
+        set_EV_far_future(t);
+        Distribution prior = t["prior"];
 
         cout << "EV of far future," << t["EV of far future"].mean() << endl;
+        cout << "weighted utility of values spreading," << t["weighted utility of values spreading"].mean() << endl;
 
         Distribution gd = t["GiveDirectly"];
         Distribution dtw = t["Deworm the World"];

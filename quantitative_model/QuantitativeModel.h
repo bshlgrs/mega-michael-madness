@@ -29,6 +29,7 @@
 
 enum class Type { empty, buckets, lognorm, double_dist };
 
+void error(std::string message);
 std::string type_to_string(Type type);
 
 class Distribution {
@@ -87,6 +88,7 @@ public:
     void set_name(std::string op, const Distribution& left, const Distribution& right);
     Distribution to_lognorm();
     Distribution to_double_dist() const;
+    Distribution negate() const;
     Distribution scale_by(double scalar) const;
     Distribution operator+(const Distribution& other) const;
     Distribution operator-(Distribution& other);
@@ -95,11 +97,13 @@ public:
     Distribution reciprocal();
     double mean();
     double variance();
+    double log_stdev();
     double mass();
     double integral(Distribution& measurement, bool ev, int sign=1) const;
     double posterior(Distribution& measurement) const;
 
     static Distribution lognorm_from_mean_and_variance(double mean, double var);
+    static Distribution empty;
 };
 
 std::function<double(double)> lomax_pdf(double median, double alpha);

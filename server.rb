@@ -31,7 +31,6 @@ post '/eval' do
   if ARGV.length > 1
     executable = ARGV[1]
   end
-  puts "******* executable is #{executable} *********"
 
   res = `./quantitative_model/#{executable} /tmp/input#{magic_number}`
   `mv -f /tmp/input#{magic_number} ./quantitative_model/input.txt`

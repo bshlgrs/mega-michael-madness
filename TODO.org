@@ -3,8 +3,10 @@
 It may be better to use as a two-sided log-normal distribution (i.e. a regular log-normal distribution combined with the same distribution flipped over the Y axis). Unclear about the details.
 *** DONE Implement core functionality
 *** TODO Rewrite front-end to allow sign changes and check them instead of hard-coding things as positive or negative
+*** TODO Make it so CI's can cross 0
 ** TODO Improve performance of bucket multiplication (FFT?)
-** TODO Write function to sum multiple distributions where you specify at runtime which are positive or negative
+** TODO Use fewer buckets and define EXP_OFFSET at runtime
+Figure out a good way to determine what exp_offset should be for each dist
 * Model Improvements
 ** TODO Break down effects on factory-farmed animals into multiple categories for different types of animals
 Might be overcomplicated and not worth it
@@ -20,7 +22,10 @@ Or figure out a better way to account for the fact that estimates tend to be too
 *** TODO Look at GiveWell's CEE's from 2007 and see why they're wrong
 ** TODO Answers to "X suffering prevented if we end factory farming" are correlated with inputs in Targeted Values Spreading: "P(friendly AI gets built)", etc.
 ** TODO For some estimates, use a distribution with the property that probability drops off faster than log-normal outside the 80% CI.
+** TODO Instead of measuring wild animal utility, we want to measure the utility /improvement/. Rather than going from -X to 0 we might go from -X to +Y.
 * Refactor
 ** TODO For posterior, represent estimate as buckets instead of converting to lognormal distribution, which loses accuracy
 * Bugs
-** TODO Well-being signs are determined by the way calculations are done and don't change when you change the sign of the input
+** TODO AI Safety model 2 should multiply by P(AI-related extinction)
+** TODO Mixing models should do a mixture, not a sum
+** TODO In "EV of far future", "factory farming" + "hedonium" has neg_weight = pos_weight = 0. It happens because of weights very close to 0 (10^-13) that should be 0; safe_reciprocal() does the wrong thing for these.
