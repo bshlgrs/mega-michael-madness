@@ -112,9 +112,6 @@ void set_prior(Table& t)
     t["Pareto prior"] = Distribution(
         lomax_pdf(t["Pareto prior median"].p_m,
                   t["Pareto prior alpha"].p_m));
-    // t["prior"] = (t["lognorm prior"] * t["log-normal weight"].p_m
-                          // + t["Pareto prior"] * t["Pareto weight"].p_m)
-        // * (1 / (t["log-normal weight"].p_m + t["Pareto weight"].p_m));
     t["prior"] = t["lognorm prior"].mixture(t["log-normal weight"].p_m,
                                             t["Pareto prior"],
                                             t["Pareto weight"].p_m);
@@ -320,12 +317,6 @@ Distribution ai_safety_model_2(Table& t)
 
 Distribution ai_safety_estimate(Table& t)
 {
-    // double divisor = t["Model 1 weight"].p_m + t["Model 2 weight"].p_m;
-    // Distribution model1 = ai_safety_model_1(t) * t["Model 1 weight"].p_m;
-    // Distribution model2 = ai_safety_model_2(t) * t["Model 2 weight"].p_m;
-    // return (model1 + model2) * (1 / divisor);
-    cout << "Model 1 " << ai_safety_model_1(t).mean() << endl;
-    cout << "Model 2 " << ai_safety_model_2(t).mean() << endl;
     return ai_safety_model_1(t).mixture(t["Model 1 weight"].p_m,
                                         ai_safety_model_2(t),
                                         t["Model 2 weight"].p_m);

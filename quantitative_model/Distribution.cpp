@@ -465,8 +465,6 @@ Distribution Distribution::operator+(const Distribution& other) const
         Distribution pos2 = *other.pos;
         Distribution sum_nn = neg1 + neg2;
         Distribution sum_pp = pos1 + pos2;
-        // TODO: these weights should definitely not all be 1. You end
-        // up double-counting the positive side.
         double nn_weight = this->neg_weight * other.neg_weight;
         double pp_weight = this->pos_weight * other.pos_weight;
         double np_weight = this->neg_weight * other.pos_weight;

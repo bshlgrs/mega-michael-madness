@@ -1,5 +1,5 @@
-log-normal weight,0.9,0.9
-Pareto weight,0.1,0.1
+log-normal weight,1,1
+Pareto weight,0,0
 log-normal prior mu,0.1,0.1
 log-normal prior sigma,0.75,0.75
 Pareto prior median,0.1,0.1
