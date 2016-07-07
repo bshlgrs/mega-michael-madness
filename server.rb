@@ -8,7 +8,7 @@ set :bind, '0.0.0.0'
 set :port, ARGV[0].to_i
 set :show_exceptions, false
 
-get '/causepri-app/' do
+get '/' do
   File.open("public/index.html").read
 end
 
