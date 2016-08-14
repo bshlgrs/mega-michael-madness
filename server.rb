@@ -1,7 +1,9 @@
 require 'sinatra'
 require "sinatra/json"
-# require_relative 'spreadsheet_reader/spreadsheet_reader'
-$TIME_BETWEEN_DOCKER_RESTARTS = 30
+require "sinatra/cookies"
+require "mongo"
+
+$collection = Mongo::Client.new('mongodb://127.0.0.1:27017/causepri-app-logs')[:logs]
 
 set :server, 'thin'
 set :bind, '0.0.0.0'
@@ -13,7 +15,9 @@ get '/' do
 end
 
 post '/eval' do
+  cookies[:uid] ||= Random.rand(1_000_000_000_000)
   inputs = params["inputs"]
+  default_inputs = params["defaultInputs"]
 
   input_to_program = inputs.map do |name, value|
     if value["type"] == "scalar"
@@ -34,15 +38,27 @@ post '/eval' do
 
   res = `./quantitative_model/#{executable} /tmp/input#{magic_number}`
   `mv -f /tmp/input#{magic_number} ./quantitative_model/input.txt`
-  json(handle_data_lines(res.split("\n")))
+
+  response = handle_data_lines(res.split("\n"))
+
+  user_modified_inputs = inputs.select { |x| inputs[x] != default_inputs[x] }
+  unmodified_default_inputs = inputs.select { |x| inputs[x] == default_inputs[x] }
+
+  $collection.insert_one({
+    user_modified_inputs: user_modified_inputs,
+    unmodified_default_inputs: unmodified_default_inputs,
+    outputs: response,
+    visitor_id: cookies[:uid],
+    ip: request.ip,
+    created_at: DateTime.now
+  })
+
+  json(response)
 end
 
-def get_default_inputs
-
-end
-
-def get_default_outputs
-
+get "/analytics" do
+  count = $db.execute("SELECT COUNT(*) FROM evaluation_requests")[0][0]
+  "You have had #{count} evaluation attempts!"
 end
 
 def handle_data_lines(lines)
