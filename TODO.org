@@ -27,3 +27,5 @@ Or figure out a better way to account for the fact that estimates tend to be too
 ** TODO For posterior, represent estimate as buckets instead of converting to lognormal distribution, which loses accuracy
 * Bugs
 ** TODO AI Safety model 2 should multiply by P(AI-related extinction)
+* Notes
+** Server is located at /root/mega-michael-madness (it's at ~/ if you log in as root).
