@@ -278,18 +278,22 @@ const CausePriApp = React.createClass({
     {this.simpleScalarsTable([
         ["Model 1 weight",0.5],
         ["Model 2 weight",0.5],
+        ["Model 3 weight",0.0],
     ])}
 
     <p>General</p>
 
+    {this.simpleScalarsTable([
+        ["cost per AI researcher",100000,"Some uncertainty here about how to account for counterfactuals; presumably AI safety researchers would do something high value otherwise"],
+    ])}
+
     {this.simpleDistributionsTable([
-        ["cost per AI researcher",70000,150000,"Some uncertainty here about how to account for counterfactuals; presumably AI safety researchers would do something high value otherwise"],
+        ["P(AI-related extinction)",0.03,0.3,"Estimated from [3]. CI for probability represents uncertainty about the estimate."],
     ])}
 
     <p>Model 1 (taken from Global Priorities Project [4])</p>
 
     {this.simpleDistributionsTable([
-        ["P(AI-related extinction)",0.03,0.3,"Estimated from [3]. CI for probability represents uncertainty about the estimate."],
         ["size of FAI community when AGI created",200,10000,"[2]"],
         ["AI researcher multiplicative effect",1,3,"If we add one new researcher now, there will be this many new researchers by the time AGI is developed."],
         ["proportion of bad scenarios averted by doubling total research",0.1,0.7],
@@ -300,6 +304,15 @@ const CausePriApp = React.createClass({
     {this.simpleDistributionsTable([
         ["hours to solve AI safety",1e6,1e10,"Perhaps this should follow Pareto dist? [1]"],
         ["hours per year per AI researcher",2000,2000],
+    ])}
+
+    <p>Model 3</p>
+
+    {this.simpleDistributionsTable([
+        ["P(hard takeoff)",0.3,0.7],
+        ["P(AGI bad by default)",1,1],
+        ["years research needed to solve AI safety",1e4,1e7],
+        ["years research done by hard takeoff date",500,50000,"You could estimate this by guessing when AGI will occur and how much the AI safety field will grow."],
     ])}
 
 

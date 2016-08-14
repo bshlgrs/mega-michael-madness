@@ -1,8 +1,11 @@
 all:
 	cd quantitative_model && $(MAKE)
 
+perf:
+	cd quantitative_model && $(MAKE) perf
+
 deploy:
-	$(MAKE) && mv quantitative_model/a.out quantitative_model/run-backend
+	$(MAKE) perf && mv quantitative_model/a.out quantitative_model/run-backend
 
 serve:
 	bundle exec ruby server.rb 8080
