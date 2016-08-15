@@ -47,7 +47,7 @@ const CausePriApp = React.createClass({
 
       <p>You can directly use the backend or add new models by <a href="https://github.com/bshlgrs/mega-michael-madness">cloning the GitHub repo</a>.</p>
 
-      <p>This model is a work in progress, and it has some issues. <a href="http://mdickens.me/contact/">Let me know</a> if you see any errors or have suggestions for how to improve it.</p>
+      <p>This model is a work in progress. We cannot guarantee that it doesn't have any major errors. <a href="http://mdickens.me/contact/">Let me know</a> if you see any errors or have suggestions for how to improve it.</p>
 
       <p>This version was implemented by Michael Dickens and Buck Shlegeris.</p>
     </div>
@@ -95,8 +95,8 @@ const CausePriApp = React.createClass({
       <p>Prior distribution weights: how much relative credence should we put in each prior distribution shape?</p>
 
       {this.simpleScalarsTable([
-          ["log-normal weight",1],
-          ["Pareto weight",0],
+          ["log-normal weight",0.5],
+          ["Pareto weight",0.5],
       ])}
 
       <p><a href="https://en.wikipedia.org/wiki/Log-normal_distribution">Log-normal</a> prior parameters. We write a log-normal distribution as X = 10<sup>m Z + &sigma;</sup> where Z is normally distributed and &mu; = 10<sup>m</sup>.</p>
