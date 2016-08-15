@@ -32,3 +32,6 @@ Make a new frontend with just a few inputs that matter most and pass those into 
 ** TODO For posterior, represent estimate as buckets instead of converting to lognormal distribution, which loses accuracy
 * Bugs
 ** TODO When should_preserve_lognorm = false, any estimates involving the far future have mean = p_s = 0.
+** TODO AI Safety model 2 should multiply by P(AI-related extinction)
+* Notes
+** Server is located at /root/mega-michael-madness (it's at ~/ if you log in as root).
