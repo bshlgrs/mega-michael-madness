@@ -1,31 +1,37 @@
+* Agenda
+** TODO Change `mixture` to not use weightings
+** TODO Use three-model mixture for AI safety
 * Code Features
 ** Allow outcome distributions to be both positive and negative
 It may be better to use as a two-sided log-normal distribution (i.e. a regular log-normal distribution combined with the same distribution flipped over the Y axis). Unclear about the details.
 *** DONE Implement core functionality
-*** TODO Rewrite front-end to allow sign changes and check them instead of hard-coding things as positive or negative
+*** DONE Rewrite front-end to allow sign changes and check them instead of hard-coding things as positive or negative
+*** TODO Allow priors to be double distributions
 *** TODO Make it so CI's can cross 0
 ** TODO Improve performance of bucket multiplication (FFT?)
 ** TODO Use fewer buckets and define EXP_OFFSET at runtime
 Figure out a good way to determine what exp_offset should be for each dist
 * Model Improvements
-** TODO Break down effects on factory-farmed animals into multiple categories for different types of animals
-Might be overcomplicated and not worth it
-** More comprehensively list plausible far-future outcomes
-*** TODO Competitive ems that outcompete humans
-see http://www.nickbostrom.com/fut/evolution.html
-*** TODO Somehow account for unpredictable outcomes
+** TODO Improved AI safety model
 ** TODO Improved prior
 Conceptualize estimates as being the top estimates drawn from a larger pool. That means you're more likely to get a good result by chance.
 
 Or figure out a better way to account for the fact that estimates tend to be too high.
 
 *** TODO Look at GiveWell's CEE's from 2007 and see why they're wrong
+** More comprehensively list plausible far-future outcomes
+*** TODO Competitive ems that outcompete humans
+see http://www.nickbostrom.com/fut/evolution.html
+*** TODO Somehow account for unpredictable outcomes
 ** TODO Answers to "X suffering prevented if we end factory farming" are correlated with inputs in Targeted Values Spreading: "P(friendly AI gets built)", etc.
 ** TODO For some estimates, use a distribution with the property that probability drops off faster than log-normal outside the 80% CI.
 ** TODO Instead of measuring wild animal utility, we want to measure the utility /improvement/. Rather than going from -X to 0 we might go from -X to +Y.
+** TODO Simple frontend
+Make a new frontend with just a few inputs that matter most and pass those into the backend.
 * Refactor
 ** TODO For posterior, represent estimate as buckets instead of converting to lognormal distribution, which loses accuracy
 * Bugs
+** TODO When should_preserve_lognorm = false, any estimates involving the far future have mean = p_s = 0.
 ** TODO AI Safety model 2 should multiply by P(AI-related extinction)
 * Notes
 ** Server is located at /root/mega-michael-madness (it's at ~/ if you log in as root).

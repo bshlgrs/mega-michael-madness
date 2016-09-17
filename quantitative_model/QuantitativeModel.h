@@ -11,6 +11,7 @@
 #define _USE_MATH_DEFINES // for M_PI
 
 #include <algorithm> /* for min/max */
+#include <cfloat> /* for DBL_MAX */
 #include <cmath>
 #include <fstream>
 #include <functional>
@@ -27,9 +28,22 @@
 #define EXP_OFFSET 100
 #define GAUSSIAN_90TH_PERCENTILE 1.2815515655
 
-enum class Type { empty, buckets, lognorm, double_dist };
+/*
+ * Tools.cpp
+ */
 
 void error(std::string message);
+std::function<double(double)> lomax_pdf(double median, double alpha);
+std::function<double(double)> lognorm_pdf(double p_m, double p_s);
+std::function<double(double)> lognorm_cdf(double p_m, double p_s);
+void normalize(int n, ...);
+
+/*
+ * Distribution.cpp
+ */
+
+enum class Type { empty, buckets, lognorm, double_dist };
+
 std::string type_to_string(Type type);
 
 class Distribution {
@@ -43,11 +57,13 @@ private:
     void half_op(std::function<double(double, double)> op, Distribution& res, const Distribution& other, bool include_diagonal) const;
     void half_sum(Distribution& res, const Distribution& other, bool include_diagonal) const;
     void half_difference(Distribution& res, const Distribution& other, bool include_diagonal) const;
+    double ev_squared();
     double integrand(Distribution& measurement, int index, bool ev, int sign=1) const;
     
 public:
     std::function<double(double)> pdf;
     std::string name;
+    bool should_preserve_lognormal = true;
 
     /* Using enum instead of subclasses because C++ is stupid. Would
      * save memory to put params for different types inside a union
@@ -86,6 +102,7 @@ public:
     double get(int index) const;
     void set_name(std::string op, const Distribution& other);
     void set_name(std::string op, const Distribution& left, const Distribution& right);
+    void print();
     Distribution to_lognorm();
     Distribution to_double_dist() const;
     Distribution negate() const;
@@ -95,17 +112,16 @@ public:
     Distribution operator-(Distribution& other);
     Distribution operator*(const Distribution& other) const;
     Distribution operator*(double scalar) const;
+    Distribution mixture(const Distribution& other);
     Distribution mixture(double weight1, const Distribution& other, double weight2);
     double mean();
     double variance();
     double log_stdev();
     double mass();
-    double integral(Distribution& measurement, bool ev, int sign=1) const;
+    double mass(double lo, double hi);
+    double integral(Distribution& measurement, bool ev, int sign = 1) const;
     double posterior(Distribution& measurement) const;
 
-    static Distribution lognorm_from_mean_and_variance(double mean, double var);
+    static Distribution lognorm_from_mean_and_variance(double mean1, double var);
     static Distribution empty;
 };
-
-std::function<double(double)> lomax_pdf(double median, double alpha);
-std::function<double(double)> lognorm_pdf(double p_m, double p_s);

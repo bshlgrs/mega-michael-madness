@@ -112,6 +112,7 @@ void set_prior(Table& t)
     t["Pareto prior"] = Distribution(
         lomax_pdf(t["Pareto prior median"].p_m,
                   t["Pareto prior alpha"].p_m));
+
     t["prior"] = t["lognorm prior"].mixture(t["log-normal weight"].p_m,
                                             t["Pareto prior"],
                                             t["Pareto weight"].p_m);
@@ -308,18 +309,57 @@ Distribution ai_safety_model_1(Table& t)
 
 Distribution ai_safety_model_2(Table& t)
 {
-    return t["cost per AI researcher"].reciprocal()
+    return t["P(AI-related extinction)"]
+        * t["cost per AI researcher"].reciprocal()
         * t["hours to solve AI safety"].reciprocal()
         * t["hours per year per AI researcher"]
         * t["EV of far future"]
         * 1000;
 }
 
+/*
+ * Based on the principle that AGI has a binary outcome (see
+ * https://www.facebook.com/groups/aisafety/permalink/619701371527314/),
+ * and marginal research only matters if it pushes us over the
+ * threshold from "not enough research" to "enough research".
+ */
+Distribution ai_safety_model_3(Table& t)
+{
+    // TODO: Right now variance in `diff` doesn't matter for the final result
+    
+    // TODO: This looks wrong. P(outcome changes) decreases when we
+    // match the intervals more tightly.
+    t["years research needed to solve AI safety"].should_preserve_lognormal = false;
+    Distribution diff = t["years research needed to solve AI safety"]
+        - t["years research done by hard takeoff date"];
+    double research_caused =
+        (t["cost per AI researcher"].reciprocal() * 1000).p_m;
+    t["P($1000 of marginal research matters)"] = Distribution(diff.mass(0, research_caused), 0);
+
+    cerr << "NEEDED," << t["years research needed to solve AI safety"].mean() << "," << t["years research needed to solve AI safety"].log_stdev() << endl;
+    cerr << "DONE," << t["years research done by hard takeoff date"].mean() << "," << t["years research done by hard takeoff date"].log_stdev() << endl;
+    cerr << "DIFF," << diff.mean() << "," << diff.log_stdev() << endl;
+    cerr << "PROB," << t["P($1000 of marginal research matters)"].mean() << "," << t["P($1000 of marginal research matters)"].log_stdev() << endl;
+
+    t["P(outcome changes per $1000)"] =
+        t["P($1000 of marginal research matters)"]
+        * t["P(hard takeoff)"]
+        * t["P(AGI bad by default)"];
+
+    return t["P(outcome changes per $1000)"]
+        * t["EV of far future"];
+}
+
 Distribution ai_safety_estimate(Table& t)
 {
-    return ai_safety_model_1(t).mixture(t["Model 1 weight"].p_m,
-                                        ai_safety_model_2(t),
-                                        t["Model 2 weight"].p_m);
+    double w1 = t["Model 1 weight"].p_m;
+    double w2 = t["Model 2 weight"].p_m;
+    double w3 = t["Model 3 weight"].p_m;
+    normalize(3, &w1, &w2, &w3);
+
+    return ai_safety_model_1(t).scale_by(w1)
+        .mixture(ai_safety_model_2(t).scale_by(w2))
+        .mixture(ai_safety_model_3(t).scale_by(w3));
 }
 
 Distribution targeted_values_spreading_estimate(Table& t)
