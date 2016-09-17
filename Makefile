@@ -5,7 +5,7 @@ deploy:
 	$(MAKE) && mv quantitative_model/a.out quantitative_model/run-backend
 
 serve:
-	bundle exec ruby server.rb 8080
+	$(MAKE) && bundle exec ruby server.rb 8080
 
 test:
-	bundle exec ruby server.rb 8787 a.out
+	$(MAKE) && bundle exec ruby server.rb 8787 a.out dev-mode

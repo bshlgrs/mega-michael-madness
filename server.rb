@@ -3,7 +3,18 @@ require "sinatra/json"
 require "sinatra/cookies"
 require "mongo"
 
-$collection = Mongo::Client.new('mongodb://127.0.0.1:27017/causepri-app-logs')[:logs]
+class FakeDB
+  def insert_one(thing)
+    # do nothing
+  end
+end
+
+if ARGV.length > 1 and ARGV.index('dev-mode')
+  $collection = FakeDB.new
+else
+  $collection = Mongo::Client.new('mongodb://127.0.0.1:27017/causepri-app-logs')[:logs]
+end
+
 
 set :server, 'thin'
 set :bind, '0.0.0.0'
@@ -32,7 +43,7 @@ post '/eval' do
   File.write("/tmp/input#{magic_number}", input_to_program.join("\n"))
 
   executable = "run-backend"
-  if ARGV.length > 1
+  if ARGV.length > 1 and ARGV[1] != 'dev-mode'
     executable = ARGV[1]
   end
 

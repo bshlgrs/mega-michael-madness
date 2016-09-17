@@ -29,3 +29,7 @@ Or figure out a better way to account for the fact that estimates tend to be too
 ** TODO AI Safety model 2 should multiply by P(AI-related extinction)
 * Notes
 ** Server is located at /root/mega-michael-madness (it's at ~/ if you log in as root).
+** How to deploy
+1. Run `make deploy`
+2. Push to GitHub
+3. SSH into root@mdickens.me, cd ~/mega-michael-madness, git pull

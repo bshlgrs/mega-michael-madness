@@ -1,5 +1,5 @@
-log-normal weight,1,1
-Pareto weight,0,0
+log-normal weight,0.5,0.5
+Pareto weight,0.5,0.5
 log-normal prior mu,0.1,0.1
 log-normal prior sigma,0.75,0.75
 Pareto prior median,0.1,0.1
@@ -77,3 +77,9 @@ P(AI researchers' values matter),0.3,0.5
 number of AI researchers when AGI created,30000,100000
 values propagation multiplier,1,5
 cost to convince one AI researcher to care about non-human minds ($),5000,50000
+proportion ACE money moved between effective animal charities,0.7,0.7
+proportion ACE money moved to effective animal charities,0.3,0.3
+ACE budget ($K),150,300
+ACE money moved ($K),1000,1500
+relative improvement between top animal charities,0.2,0.5
+relative improvement from money moved to effective animal charities,0.2,0.5

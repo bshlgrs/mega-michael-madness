@@ -69,6 +69,7 @@ const CausePriApp = React.createClass({
           {this.tr(["Deworm the World", "$DtW estimate mean", "$DtW estimate p_s", "$DtW posterior"])}
           {this.tr(["Veg advocacy", "$veg estimate mean", "$veg estimate p_s", "$veg posterior"])}
           {this.tr(["Cage free", "$cage free estimate mean", "$cage free estimate p_s", "$cage free posterior"])}
+          {this.tr(["ACE", "$ACE estimate mean", "$ACE estimate p_s", "N/A"])}
         </tbody>
       </Table>
 
@@ -80,6 +81,7 @@ const CausePriApp = React.createClass({
           {this.tr(["AI safety", "$AI safety estimate mean", "$AI safety estimate p_s", "$AI safety posterior"])}
           {this.tr(["Veg advocacy", "$veg ff estimate mean", "$veg ff estimate p_s", "$veg ff posterior"])}
           {this.tr(["Targeted values spreading", "$TVS estimate mean", "$TVS estimate p_s", "$TVS posterior"])}
+          {this.tr(["ACE", "$ACE ff estimate mean", "$ACE ff estimate p_s", "N/A"])}
         </tbody>
       </Table>
 
@@ -335,6 +337,8 @@ const CausePriApp = React.createClass({
       return <div>
       <h3>Animal Charity Evaluators (ACE)</h3>
 
+      This assumes that an ACE top charity does as much good as the "veg advocacy" intervention.
+
       {this.simpleScalarsTable([
           ["proportion ACE money moved between effective animal charities",0.7,"These should add up to 1."],
           ["proportion ACE money moved to effective animal charities",0.3],
@@ -347,7 +351,16 @@ const CausePriApp = React.createClass({
           ["relative improvement from money moved to effective animal charities",0.2,0.5],
       ])}
 
-      <p>References</p>
+      How valuable are donations to ACE relative to donations to ACE top charities, considering just the effects from ACE moving money? Let's say a $1000 donation to an ACE top charity does 1 unit of good.
+      <Table>
+      <tbody>
+          {this.firstTr(["Name", "Value"])}
+          {this.tr(["relative value of ACE money moved", "$relative value of ACE money moved"])}
+          {this.tr(["relative value of ACE money moved per $1000", "$relative value of ACE money moved per $1000"])}
+      </tbody>
+      </Table>
+
+    <p>References</p>
       <ol>
           <li>Animal Charity Evaluators, <a href="http://www.animalcharityevaluators.org/blog/top-charity-donor-survey-2015/">"Top Charity Donor Survey 2015"</a></li>
       </ol>
