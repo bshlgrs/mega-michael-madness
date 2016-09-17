@@ -336,6 +336,27 @@ Distribution targeted_values_spreading_estimate(Table& t)
         * t["increased probability that AGI is good for animals per $1000 spent"];
 }
 
+Distribution ace_estimate(Table& t)
+{
+    t["value of ACE money moved"] =
+        t["ACE money moved ($K)"]
+        * (  (t["proportion ACE money moved between effective animal charities"]
+              * t["relative improvement between top animal charities"])
+           + (t["proportion ACE money moved to effective animal charities"]
+              * t["relative improvement from money moved to effective animal charities"]));
+    
+    // TODO
+    // t["value of ACE intervention research"] = something;
+
+    t["value of ACE per $1000"] =
+        (t["value of ACE money moved"]
+         // + t["value of ACE intervention research"] // TODO
+         )
+        * 1000 * (t["ACE budget ($K)"] * 1000).reciprocal();
+
+    return t["vaue of ACE per $1000"];
+}
+
 void print_results(string name, Distribution prior, Distribution estimate)
 {
     Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
@@ -363,6 +384,7 @@ int main(int argc, char *argv[])
         Distribution cage = cage_free_estimate_direct(t);
         Distribution ai = ai_safety_estimate(t);
         Distribution tvs = targeted_values_spreading_estimate(t);
+        Distribution ace = ace_estimate(t);
 
         print_results("GiveDirectly", prior, gd);
         print_results("DtW", prior, dtw);
@@ -371,6 +393,7 @@ int main(int argc, char *argv[])
         print_results("cage free", prior, cage);
         print_results("AI safety", prior, ai);
         print_results("TVS", prior, tvs);
+        print_results("ACE", prior, ace);
         
     } catch (const char *msg) {
         cerr << msg << endl;

@@ -18,6 +18,7 @@ const CausePriApp = React.createClass({
       ["Cage Free", this.renderCageFreeTab()],
       ["AI Safety", this.renderAISafetyTab()],
       ["Targeted Values Spreading", this.renderTargetedValuesSpreadingTab()],
+      ["ACE", this.renderACETab()],
     ]
   },
 
@@ -326,8 +327,31 @@ const CausePriApp = React.createClass({
         ["values propagation multiplier",1,5,"If we change one researcher's values today, this many researchers' values will change by the time AGI is developed."],
         ["cost to convince one AI researcher to care about non-human minds ($)",5000,50000],
      ])}
-
      </div>
+  },
+
+
+  renderACETab() {
+      return <div>
+      <h3>Animal Charity Evaluators (ACE)</h3>
+
+      {this.simpleScalarsTable([
+          ["proportion ACE money moved between effective animal charities",0.7,"These should add up to 1."],
+          ["proportion ACE money moved to effective animal charities",0.3],
+      ])}
+          
+      {this.simpleDistributionsTable([
+          ["ACE budget ($K)",150,300],
+          ["ACE money moved ($K)",1000,1500],
+          ["relative improvement between top animal charities",0.2,0.5,"That is, if ACE's top animal charity does 1 unit of good, how many fewer units of good do other effective animal charities do? Estimated from [1]."],
+          ["relative improvement from money moved to effective animal charities",0.2,0.5],
+      ])}
+
+      <p>References</p>
+      <ol>
+          <li>Animal Charity Evaluators, <a href="http://www.animalcharityevaluators.org/blog/top-charity-donor-survey-2015/">"Top Charity Donor Survey 2015"</a></li>
+      </ol>
+      </div>
   },
 
   //////// MICHAEL, DON'T EDIT BELOW THIS LINE.
