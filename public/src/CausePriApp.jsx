@@ -383,7 +383,8 @@ const CausePriApp = React.createClass({
       dataResult: {},
       selectedTab: parseInt(window.location.hash.slice(1)) || 0,
       showImportModal: false,
-      calculating: true
+      calculating: true,
+      considerRfmf: false
     }
   },
 
@@ -402,7 +403,13 @@ const CausePriApp = React.createClass({
     var that = this;
     this.setState({ calculating: true });
 
-    $.post("./eval", { inputs: this.state.inputs, defaultInputs: this.state.defaultInputs }, function (result) {
+    var data = {
+      inputs: this.state.inputs,
+      defaultInputs: this.state.defaultInputs,
+      considerRfmf: this.state.considerRfmf
+    };
+
+    $.post("./eval", data, function (result) {
       if (typeof result == "string") {
         result = JSON.parse(result);
       }
@@ -600,6 +607,16 @@ const CausePriApp = React.createClass({
             <div className="checkbox">
               <label>
                 <input type="checkbox" onChange={this.toggleDisplayOriginalInputs}/> Display original inputs
+              </label>
+            </div>
+
+            <div className="checkbox">
+              <label>
+                <input
+                  value={this.state.considerRfmf}
+                  type="checkbox"
+                  onChange={(e) => this.setState({considerRfmf: !this.state.considerRfmf})} />
+                Consider RFMF?
               </label>
             </div>
           </div>

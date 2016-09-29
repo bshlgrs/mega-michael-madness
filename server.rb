@@ -18,6 +18,7 @@ post '/eval' do
   cookies[:uid] ||= Random.rand(1_000_000_000_000)
   inputs = params["inputs"]
   default_inputs = params["defaultInputs"]
+  consider_rfmf = params["considerRfmf"]
 
   input_to_program = inputs.map do |name, value|
     if value["type"] == "scalar"
@@ -36,7 +37,7 @@ post '/eval' do
     executable = ARGV[1]
   end
 
-  res = `./quantitative_model/#{executable} /tmp/input#{magic_number}`
+  res = `./quantitative_model/#{executable} /tmp/input#{magic_number} #{consider_rfmf}`
   `mv -f /tmp/input#{magic_number} ./quantitative_model/input.txt`
 
   response = handle_data_lines(res.split("\n"))
