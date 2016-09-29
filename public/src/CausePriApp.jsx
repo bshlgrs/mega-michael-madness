@@ -381,7 +381,7 @@ const CausePriApp = React.createClass({
     return {
       inputs: {},
       dataResult: {},
-      selectedTab: 0,
+      selectedTab: parseInt(window.location.hash.slice(1)) || 0,
       showImportModal: false,
       calculating: true
     }
@@ -413,6 +413,7 @@ const CausePriApp = React.createClass({
 
   handleTabChange(idx) {
     this.setState({"selectedTab": idx});
+    setTimeout(() => { window.location.hash = "#" + idx; }, 10);
   },
 
   interpretCell(cell) {
