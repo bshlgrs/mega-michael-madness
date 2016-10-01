@@ -112,7 +112,6 @@ body {
 }
 
 .results {
-  position: fixed;
   top:51px;
   right:0px;
 }
