@@ -105,6 +105,21 @@ Table read_input(string filename)
     return t;
 }
 
+Distribution sum_models(Table& t, string names[], int length,
+                        Distribution& per1k_converter)
+{
+    Distribution sum;
+    for (int i = 0; i < length; i++) {
+        string per1k = names[i] + " per $1000";
+        t[per1k] = t[names[i]] * per1k_converter;
+        cout << per1k << "," << t[per1k].mean() << endl;
+        if (i == 0) sum = t[per1k];
+        else sum = sum + t[per1k];
+    }
+
+    return sum.to_lognorm();
+}
+
 void set_prior(Table& t)
 {
     t["lognorm prior"] = Distribution(t["log-normal prior mu"].p_m,
@@ -256,9 +271,17 @@ void set_EV_far_future(Table& t)
                                                  );
 }
 
-Distribution veg_estimate_direct(Table& t)
+Distribution amf_estimate_direct(Table& t)
 {
+    // TODO: might need to convert to lognorm
+    return t["AMF impact from improving health"]
+        + (t["AMF cost per life saved ($K)"].reciprocal()
+           * t["adjusted life expectancy"]
+           * t["QALYs per life-year saved"]);
+}
 
+Distribution veg_ads_estimate_direct(Table& t)
+{
     Distribution utility_estimate =
         t["years factory farming prevented per $1000"]
         * t["utility per factory-farmed animal"].negate();
@@ -266,7 +289,7 @@ Distribution veg_estimate_direct(Table& t)
 }
 
 /* Estimates the effect of veg advocacy on the far future. */
-Distribution veg_estimate_ff(Table& t)
+Distribution veg_ads_estimate_ff(Table& t)
 {
      t["veg-years per $1000"] =
         t["vegetarians per $1000"]
@@ -294,6 +317,59 @@ Distribution cage_free_estimate_direct(Table& t)
         * t["cage-free years per cage prevented"]
         * t["utility per cage removed"]
         * 1000;
+}
+
+Distribution gfi_estimate_direct(Table& t)
+{
+    // Note: GFI does multiple things so these models may be additive
+    // rather than disjunctive
+    
+    string model_names[] = {
+        "GFI value from accelerating cultured meat",
+        "GFI value from helping startups",
+        "GFI value from corporate engagement",
+    };
+
+    t[model_names[0]] =
+        t["number of people who'd switch to cultured meat (millions)"]
+        * 1000000
+        * t["years cultured meat accelerated by GFI per year"]
+        * t["factory farming years caused per human year"];
+
+    t[model_names[1]] =
+        t["mean revenue of startups GFI supports ($K)"]
+        * 1000
+        * t["number of startups GFI can support per year"]
+        * t["money per person-year spent on animal products"].reciprocal()
+        * t["factory farming years caused per human year"]
+        * t["proportion of startup success attributable to GFI"];
+
+    cerr << model_names[1] << ": " << t[model_names[1]].mean() << endl;
+
+    t[model_names[2]] =
+        t["factory farming years displaced at restaurants and grocery stores by GFI"];
+
+    Distribution to_1k_converter = t["GFI budget ($K)"].reciprocal();
+
+    t["GFI years factory farming prevented per $1000"] = sum_models(t, model_names, 3, to_1k_converter);
+
+    t["GFI suffering prevented per $1000"] =
+        t["GFI years factory farming prevented per $1000"]
+        * t["utility per factory-farmed animal"].negate();
+
+    return t["GFI suffering prevented per $1000"];
+}
+
+Distribution gfi_estimate_ff(Table& t)
+{
+    t["GFI value shifts per $1000"] =
+        t["GFI years factory farming prevented per $1000"]
+        * t["factory farming years caused per human year"].reciprocal()
+        * t["speciesism reduction caused by not eating animals"];
+
+    return t["weighted utility of values spreading"]
+        * t["memetically relevant humans"].reciprocal()
+        * t["GFI value shifts per $1000"];
 }
 
 Distribution ai_safety_model_1(Table& t)
@@ -335,11 +411,6 @@ Distribution ai_safety_model_3(Table& t)
     double research_caused =
         (t["cost per AI researcher"].reciprocal() * 1000).p_m;
     t["P($1000 of marginal research matters)"] = Distribution(diff.mass(0, research_caused), 0);
-
-    cerr << "NEEDED," << t["years research needed to solve AI safety"].mean() << "," << t["years research needed to solve AI safety"].log_stdev() << endl;
-    cerr << "DONE," << t["years research done by hard takeoff date"].mean() << "," << t["years research done by hard takeoff date"].log_stdev() << endl;
-    cerr << "DIFF," << diff.mean() << "," << diff.log_stdev() << endl;
-    cerr << "PROB," << t["P($1000 of marginal research matters)"].mean() << "," << t["P($1000 of marginal research matters)"].log_stdev() << endl;
 
     t["P(outcome changes per $1000)"] =
         t["P($1000 of marginal research matters)"]
@@ -383,54 +454,78 @@ Distribution ace_estimate_general(Table& t)
           * t["relative improvement between top animal charities"])
          + (t["proportion ACE money moved to effective animal charities"]
             * t["relative improvement from money moved to effective animal charities"])).to_lognorm()
-        * t["ACE money moved ($K)"];
+        * t["ACE total money moved ($K)"]
+        * t["ACE marginal money moved relative to total money moved"];
     
-    // TODO
-    // t["value of ACE intervention research"] = something;
+    t["relative value of ACE intervention research"] =
+        t["relative improvement between animal interventions"]
+        * t["money put into interventions that ACE researches ($K)"]
+        * t["proportion of money moved by ACE report"];
 
-    t["relative value of ACE money moved per $1000"] =
-        (t["relative value of ACE money moved"]
-         // + t["value of ACE intervention research"] // TODO
-           )
-        * 1000 * (t["ACE budget ($K)"] * 1000).reciprocal();
-
+    // TODO: call sum_models
     string outputs[] = {
         "relative value of ACE money moved",
-        "relative value of ACE money moved per $1000",
+        "relative value of ACE intervention research",
     };
     for (int i = 0; i < sizeof(outputs)/sizeof(string); i++) {
-        cout << outputs[i] << "," << t[outputs[i]].mean() << endl;
+        string total = outputs[i];
+        string per1k = outputs[i] + " per $1000";
+        t[per1k] = t[total] * t["ACE budget ($K)"].reciprocal();
+
+        cout << per1k << "," << t[per1k].mean() << endl;
     }
 
-
-    
-    return t["relative value of ACE money moved per $1000"];
+    return (t[outputs[0] + " per $1000"]
+            + t[outputs[1] + " per $1000"]).to_lognorm();
 }
 
 Distribution ace_estimate_direct(Table& t)
 {
-    return ace_estimate_general(t) * t["veg posterior"];
+    return ace_estimate_general(t) * t["veg posterior"].mean();
 }
 
 Distribution ace_estimate_ff(Table& t)
 {
-    return ace_estimate_general(t) * t["veg ff posterior"];
+    return ace_estimate_general(t) * t["veg ff posterior"].mean();
+}
+
+Distribution reg_estimate(Table& t)
+{
+    t["REG weighted money raised"] = 
+        t["REG money raised for AMF"] * t["AMF posterior"]
+        + t["REG money raised for veg advocacy"] * t["veg posterior"]
+        + t["REG money raised for veg advocacy"] * t["veg ff posterior"]
+        + t["REG money raised for AI safety"] * t["AI safety posterior"]
+        + t["REG money raised for TVS"] * t["TVS posterior"]
+        + t["REG money raised for ACE"] * t["ACE estimate mean"];
+        + t["REG money raised for ACE"] * t["ACE ff estimate mean"];
+
+    return t["REG weighted money raised"]
+        * t["REG ratio of future money moved to historical money moved"]
+        * t["REG budget ($K)"].reciprocal();
 }
 
 void print_results(Table& t, string name, Distribution prior, Distribution estimate)
 {
     Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
     double posterior = prior.posterior(estimate);
+    if (t[name + " RFMF factor"].type != Type::empty) {
+        posterior *= t[name + " RFMF factor"].p_m;
+    }
     t[name + " posterior"] = CI(posterior);
     cout << name << " estimate mean," << estimate.mean() << endl;
     cout << name << " estimate p_s," << ln.log_stdev() << endl;
     cout << name << " posterior," << posterior << endl;
 }
 
-void print_results_no_posterior(string name, Distribution estimate)
+void print_results_no_posterior(Table& t, string name, Distribution estimate)
 {
     Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
-    cout << name << " estimate mean," << estimate.mean() << endl;
+    double ev = estimate.mean();
+    if (t[name + " RFMF factor"].type != Type::empty) {
+       ev *= t[name + " RFMF factor"].p_m;
+    }
+    cout << name << " estimate mean," << ev << endl;
     cout << name << " estimate p_s," << ln.log_stdev() << endl;
 }
 
@@ -452,13 +547,21 @@ int main(int argc, char *argv[])
         Distribution dtw = t["Deworm the World"];
         print_results(t, "DtW", prior, dtw);
 
-        Distribution veg = veg_estimate_direct(t);
-        Distribution veg_ff = veg_estimate_ff(t);
+        Distribution amf = amf_estimate_direct(t);
+        print_results(t, "AMF", prior, amf);
+
+        Distribution veg = veg_ads_estimate_direct(t);
+        Distribution veg_ff = veg_ads_estimate_ff(t);
         print_results(t, "veg", prior, veg);
         print_results(t, "veg ff", prior, veg_ff);
 
         Distribution cage = cage_free_estimate_direct(t);
         print_results(t, "cage free", prior, cage);
+
+        Distribution gfi = gfi_estimate_direct(t);
+        Distribution gfi_ff = gfi_estimate_ff(t);
+        print_results(t, "GFI", prior, gfi);
+        print_results(t, "GFI ff", prior, gfi_ff);
 
         Distribution ai = ai_safety_estimate(t);
         print_results(t, "AI safety", prior, ai);
@@ -468,8 +571,8 @@ int main(int argc, char *argv[])
 
         Distribution ace = ace_estimate_direct(t);
         Distribution ace_ff = ace_estimate_ff(t);
-        print_results_no_posterior("ACE", ace);
-        print_results_no_posterior("ACE ff", ace_ff);
+        print_results_no_posterior(t, "ACE", ace);
+        print_results_no_posterior(t, "ACE ff", ace_ff);
         
     } catch (const char *msg) {
         cerr << msg << endl;

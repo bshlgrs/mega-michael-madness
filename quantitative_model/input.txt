@@ -24,6 +24,13 @@ dolorium well-being,-100,-100
 dolorium brains per human brain,1000000,1000000
 GiveDirectly,0.9,1.1
 Deworm the World,5,20
+AMF impact from improving health,1.5,5
+AMF cost per life saved ($K),2.5,4
+adjusted life expectancy,30,30
+QALYs per life-year saved,0.05,0.5
+GiveDirectly RFMF factor,1,1
+DtW RFMF factor,0.7,0.7
+AMF RFMF factor,0.8,0.8
 P(stay on earth),0.2,0.2
 P(we reduce WAS on balance),0.7,0.7
 P(fill universe with biology),0.4,0.4
@@ -46,6 +53,7 @@ factory farmed animals per star,10000000000,1000000000000
 wild vertebrates per star,10000000000000,10000000000000000
 insects per star,100000000000000000,1e+21
 simulations per insect,0.001,1
+veg RFMF factor,1,1
 years factory farming prevented per $1000,700,13000
 memetically relevant humans,1000000000,2000000000
 vegetarians per $1000,22,323
@@ -57,15 +65,28 @@ insect suffering prevented by changing values,0.2,0.4
 suffering simulations prevented by changing values,0.2,0.4
 hedonium scenarios caused by changing values,0.01,0.1
 dolorium scenarios prevented by changing values,0.001,0.001
+cage free RFMF factor,0.7,0.7
 cage-free total expenditures ($M),2,3
 years until cage-free would have happened anyway,5,10
 millions of cages prevented,100,150
 proportion of change attributable to campaigns,0.7,1
 cage-free years per cage prevented,1,1
 values spreading effect of cage-free year relative to vegetarian-year,0.01,0.1
+GFI RFMF factor,0.5,0.5
+factory farming years caused per human year,3,4
+speciesism reduction caused by not eating animals,0.05,0.15
+GFI budget ($K),1600,1700
+number of people who'd switch to cultured meat (millions),500,2000
+years cultured meat accelerated by GFI per year,0.01,0.1
+mean revenue of startups GFI supports ($K),2000,10000
+number of startups GFI can support per year,10,15
+money per person-year spent on animal products,500,800
+proportion of startup success attributable to GFI,0.01,0.03
+factory farming years displaced at restaurants and grocery stores by GFI,1,10
 Model 1 weight,0.5,0.5
 Model 2 weight,0.5,0.5
 Model 3 weight,0,0
+AI safety RFMF factor,0.7,0.7
 cost per AI researcher,100000,100000
 P(AI-related extinction),0.03,0.3
 size of FAI community when AGI created,200,10000
@@ -82,9 +103,14 @@ P(AI researchers' values matter),0.3,0.5
 number of AI researchers when AGI created,30000,100000
 values propagation multiplier,1,5
 cost to convince one AI researcher to care about non-human minds ($),5000,50000
+ACE RFMF factor,1,1
 proportion ACE money moved between effective animal charities,0.7,0.7
 proportion ACE money moved to effective animal charities,0.3,0.3
 ACE budget ($K),150,300
-ACE money moved ($K),1000,1500
-relative improvement between top animal charities,0.2,0.5
-relative improvement from money moved to effective animal charities,0.2,0.5
+ACE total money moved ($K),1000,1500
+ACE marginal money moved relative to total money moved,0.2,0.4
+relative improvement between top animal charities,0.1,0.3
+relative improvement from money moved to effective animal charities,0.9,0.9
+relative improvement between animal interventions,0.2,0.5
+money put into interventions that ACE researches ($K),8000,12000
+proportion of money moved by ACE report,0.01,0.05
