@@ -1,3 +1,5 @@
 */a.out
 */run-backend
 */*.o
+*/.DS_Store
+*/a.out.dSYM

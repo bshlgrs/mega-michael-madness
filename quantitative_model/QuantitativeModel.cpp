@@ -497,7 +497,7 @@ Distribution reg_estimate(Table& t)
         + t["REG money raised for veg advocacy"] * t["veg ff posterior"]
         + t["REG money raised for AI safety"] * t["AI safety posterior"]
         + t["REG money raised for TVS"] * t["TVS posterior"]
-        + t["REG money raised for ACE"] * t["ACE estimate mean"];
+        + t["REG money raised for ACE"] * t["ACE estimate mean"]
         + t["REG money raised for ACE"] * t["ACE ff estimate mean"];
 
     return t["REG weighted money raised"]
