@@ -20,6 +20,7 @@ const CausePriApp = React.createClass({
       ["AI Safety", this.renderAISafetyTab()],
       ["Targeted Values Spreading", this.renderTargetedValuesSpreadingTab()],
       ["ACE", this.renderACETab()],
+      ["REG", this.renderREGTab()],
     ]
   },
 
@@ -301,6 +302,7 @@ const CausePriApp = React.createClass({
 
   renderGFITab() {
       return <div>
+      <h3>Good Food Institute (GFI)</h3>
 
       <p>General</p>
       {this.simpleScalarsTable([
@@ -479,7 +481,25 @@ const CausePriApp = React.createClass({
 
   renderREGTab() {
     return <div>
-          <p>Raising for Effective Giving</p>
+    <h3>Raising for Effective Giving</h3>
+
+    {this.simpleDistributionsTable([
+      ["REG budget ($K)",150,200],
+      ["REG ratio of future money moved to historical money moved",0.5,1.5],
+    ])}
+
+    <p>Units in thousands of dollars.</p>
+    {this.simpleScalarsTable([
+    ["REG money raised for global poverty",439,"Uses impact estimate for AMF since REG mostly raises money for AMF"],
+    ["REG money raised for veg advocacy",123],
+    ["REG money raised for AI safety",263],
+    ["REG money raised for speculative animal charities",164],
+    ["REG money raised for ACE",27],
+    ])}
+
+    {this.simpleScalarsTable([
+    ["REG speculative animal charities posterior",,"I'm not providing estimate for this one so you just have to make it up"],
+    ])}
     </div>
   },
 

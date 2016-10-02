@@ -18,6 +18,8 @@ using namespace std;
 
 bool WARN_ABOUT_MISSING_KEYS = false;
 
+bool consider_rfmf = false;
+
 class Table {
 private:
     map<string, Distribution> table;
@@ -489,18 +491,27 @@ Distribution ace_estimate_ff(Table& t)
     return ace_estimate_general(t) * t["veg ff posterior"].mean();
 }
 
-Distribution reg_estimate(Table& t)
+Distribution reg_estimate_direct(Table& t)
 {
     t["REG weighted money raised"] = 
         t["REG money raised for AMF"] * t["AMF posterior"]
         + t["REG money raised for veg advocacy"] * t["veg posterior"]
-        + t["REG money raised for veg advocacy"] * t["veg ff posterior"]
-        + t["REG money raised for AI safety"] * t["AI safety posterior"]
-        + t["REG money raised for TVS"] * t["TVS posterior"]
         + t["REG money raised for ACE"] * t["ACE estimate mean"]
-        + t["REG money raised for ACE"] * t["ACE ff estimate mean"];
 
     return t["REG weighted money raised"]
+        * t["REG ratio of future money moved to historical money moved"]
+        * t["REG budget ($K)"].reciprocal();
+}
+
+Distribution reg_estimate_ff(Table& t)
+{
+    t["REG weighted money raised ff"] = 
+        t["REG money raised for veg advocacy"] * t["veg ff posterior"]
+        + t["REG money raised for AI safety"] * t["AI safety posterior"]
+        + t["REG money raised for TVS"] * t["TVS posterior"]
+        + t["REG money raised for ACE"] * t["ACE ff estimate mean"];
+
+    return t["REG weighted money raised ff"]
         * t["REG ratio of future money moved to historical money moved"]
         * t["REG budget ($K)"].reciprocal();
 }
@@ -509,7 +520,7 @@ void print_results(Table& t, string name, Distribution prior, Distribution estim
 {
     Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
     double posterior = prior.posterior(estimate);
-    if (t[name + " RFMF factor"].type != Type::empty) {
+    if (consider_rfmf && t[name + " RFMF factor"].type != Type::empty) {
         posterior *= t[name + " RFMF factor"].p_m;
     }
     t[name + " posterior"] = CI(posterior);
@@ -522,7 +533,7 @@ void print_results_no_posterior(Table& t, string name, Distribution estimate)
 {
     Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
     double ev = estimate.mean();
-    if (t[name + " RFMF factor"].type != Type::empty) {
+    if (consider_rfmf && t[name + " RFMF factor"].type != Type::empty) {
        ev *= t[name + " RFMF factor"].p_m;
     }
     cout << name << " estimate mean," << ev << endl;
@@ -532,6 +543,10 @@ void print_results_no_posterior(Table& t, string name, Distribution estimate)
 int main(int argc, char *argv[])
 {
     try {
+        if (strcmp(argv[2], "true") == 0) {
+            consider_rfmf = true;
+        }
+        
         Table t = read_input(argv[1]);
         set_prior(t);
         set_globals(t);
@@ -573,6 +588,11 @@ int main(int argc, char *argv[])
         Distribution ace_ff = ace_estimate_ff(t);
         print_results_no_posterior(t, "ACE", ace);
         print_results_no_posterior(t, "ACE ff", ace_ff);
+
+        Distribution reg = reg_estimate_direct(t);
+        Distribution reg_ff = reg_estimate_ff(t);
+        print_results_no_posterior(t, "REG", reg);
+        print_results_no_posterior(t, "REG ff", reg_ff);
         
     } catch (const char *msg) {
         cerr << msg << endl;
