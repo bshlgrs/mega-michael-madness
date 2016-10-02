@@ -61,6 +61,8 @@ const CausePriApp = React.createClass({
 
       <h3>Direct effects</h3>
 
+      {this.renderLink("I am a link to tab 2!", 2)}
+
       <p>Measured in terms of <a href="https://en.wikipedia.org/wiki/Quality-adjusted_life_year">QALYs</a> per $1000.</p>
 
       <Table>
@@ -331,7 +333,7 @@ const CausePriApp = React.createClass({
       {this.simpleDistributionsTable([
           ["factory farming years displaced at restaurants and grocery stores by GFI",1,10,"TODO: figure out actual numbers for this"],
       ])}
-    
+
       <Table>
       <tbody>
           {this.firstTr(["Name", "Value"])}
@@ -445,7 +447,7 @@ const CausePriApp = React.createClass({
           ["proportion ACE money moved between effective animal charities",0.7,"In other words, how much of ACE's money moved would have gone to some other effective animal charity otherwise? Estimated from [1]."],
           ["proportion ACE money moved to effective animal charities",0.3,"How much of ACE's money moved would have gone to something substantially less effective, or wouldn't have been donated at all?"],
       ])}
-          
+
       {this.simpleDistributionsTable([
           ["ACE budget ($K)",150,300],
           ["ACE total money moved ($K)",1000,1500],
@@ -579,6 +581,10 @@ const CausePriApp = React.createClass({
 
   tr(args) {
     return <tr>{args.map((x, idx) => <td key={idx}>{this.interpretCell(x)}</td>)}</tr>
+  },
+
+  renderLink(text, idx) {
+    return <a onClick={() => this.handleTabChange(idx)}>{text}</a>;
   },
 
   output(name, type) {
