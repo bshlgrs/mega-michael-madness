@@ -62,8 +62,6 @@ const CausePriApp = React.createClass({
 
       <h3>Direct effects</h3>
 
-      {this.renderLink("I am a link to tab 2!", 2)}
-
       <p>Measured in terms of <a href="https://en.wikipedia.org/wiki/Quality-adjusted_life_year">QALYs</a> per $1000.</p>
 
       <Table>
@@ -76,6 +74,7 @@ const CausePriApp = React.createClass({
           {this.tr(["Cage free", "$cage free estimate mean", "$cage free estimate p_s", "$cage free posterior"])}
           {this.tr(["GFI", "$GFI estimate mean", "$GFI estimate p_s", "$GFI posterior"])}
           {this.tr(["ACE", "", "$ACE estimate p_s", "$ACE estimate mean"])}
+          {this.tr(["REG", "", "$REG estimate p_s", "$REG estimate mean"])}
         </tbody>
       </Table>
 
@@ -89,6 +88,7 @@ const CausePriApp = React.createClass({
           {this.tr(["GFI", "$GFI ff estimate mean", "$GFI ff estimate p_s", "$GFI ff posterior"])}
           {this.tr(["Targeted values spreading", "$TVS estimate mean", "$TVS estimate p_s", "$TVS posterior"])}
           {this.tr(["ACE", "", "$ACE ff estimate p_s", "$ACE ff estimate mean"])}
+          {this.tr(["REG", "", "$REG ff estimate p_s", "$REG ff estimate mean"])}
         </tbody>
       </Table>
 
@@ -308,7 +308,7 @@ const CausePriApp = React.createClass({
 
       <p>General</p>
       {this.simpleScalarsTable([
-          ["GFI RFMF factor",0.5],
+          ["GFI RFMF factor",0.7],
       ])}
       {this.simpleDistributionsTable([
           ["factory farming years caused per human year",3,4,"Including land animals only because we have better stats on them"],
@@ -443,7 +443,7 @@ const CausePriApp = React.createClass({
 
       <p>Inputs for the value of ACE money moved:</p>
       {this.simpleScalarsTable([
-          ["ACE RFMF factor",1],
+          ["ACE RFMF factor",0.7],
       ])}
       {this.simpleScalarsTable([
           ["proportion ACE money moved between effective animal charities",0.7,"In other words, how much of ACE's money moved would have gone to some other effective animal charity otherwise? Estimated from [1]."],
@@ -462,7 +462,7 @@ const CausePriApp = React.createClass({
       {this.simpleDistributionsTable([
           ["relative improvement between animal interventions",0.2,0.5],
           ["money put into interventions that ACE researches ($K)",8000,12000,"According to GuideStar, MFA has a budget of $5M, Human League has $1M, Animal Equality $300K. Some other orgs have similar activities."],
-          ["proportion of money moved by ACE report",0.01,0.05],
+          ["proportion of money moved by ACE report",0.002,0.02],
       ])}
 
       <p>How valuable are donations to ACE relative to donations to ACE top charities, considering just the effects from ACE moving money? Let's say a $1000 donation to an ACE top charity does 1 unit of good.</p>
@@ -485,9 +485,14 @@ const CausePriApp = React.createClass({
     return <div>
     <h3>Raising for Effective Giving</h3>
 
+    {this.simpleScalarsTable([
+        ["REG RFMF factor",0.3,"Good RFMF but high fungibility with other EAF projects"],
+    ])}
+
+    <p>These numbers give the historical stats for REG from its inception through the first half of 2016.</p>
     {this.simpleDistributionsTable([
       ["REG budget ($K)",150,200],
-      ["REG ratio of future money moved to historical money moved",0.5,1.5],
+      ["REG ratio of future money moved to historical money moved",0.5,1.2],
     ])}
 
     <p>Units in thousands of dollars.</p>
@@ -499,8 +504,8 @@ const CausePriApp = React.createClass({
     ["REG money raised for ACE",27],
     ])}
 
-    {this.simpleScalarsTable([
-    ["REG speculative animal charities posterior",,"I'm not providing estimate for this one so you just have to make it up"],
+    {this.simpleDistributionsTable([
+      ["speculative animal charities estimate",2000,500000,"I'm not providing calculations for this so you'll just have to make it up"]
     ])}
     </div>
   },

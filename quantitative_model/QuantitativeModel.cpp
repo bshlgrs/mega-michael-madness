@@ -305,9 +305,10 @@ Distribution veg_ads_estimate_ff(Table& t)
         (t["veg-years directly created per $1000"]
          + t["veg-years indirectly created per $1000"]).to_lognorm();
 
-    return t["weighted utility of values spreading"]
+    Distribution utility_estimate = t["weighted utility of values spreading"]
         * t["memetically relevant humans"].reciprocal()
         * t["veg-years permanently created per $1000"];
+    return utility_estimate;
 }
 
 Distribution cage_free_estimate_direct(Table& t)
@@ -345,8 +346,6 @@ Distribution gfi_estimate_direct(Table& t)
         * t["money per person-year spent on animal products"].reciprocal()
         * t["factory farming years caused per human year"]
         * t["proportion of startup success attributable to GFI"];
-
-    cerr << model_names[1] << ": " << t[model_names[1]].mean() << endl;
 
     t[model_names[2]] =
         t["factory farming years displaced at restaurants and grocery stores by GFI"];
@@ -493,10 +492,11 @@ Distribution ace_estimate_ff(Table& t)
 
 Distribution reg_estimate_direct(Table& t)
 {
-    t["REG weighted money raised"] = 
-        t["REG money raised for AMF"] * t["AMF posterior"]
-        + t["REG money raised for veg advocacy"] * t["veg posterior"]
-        + t["REG money raised for ACE"] * t["ACE estimate mean"]
+    t["REG weighted money raised"] =
+        CI((t["REG money raised for global poverty"] * t["AMF posterior"]).mean()
+           + (t["REG money raised for veg advocacy"] * t["veg posterior"]).mean()
+           + (t["REG money raised for ACE"] * t["ACE estimate"]).mean()
+           + (t["REG money raised for speculative animal charities"] * t["speculative animal charities posterior"]).mean());
 
     return t["REG weighted money raised"]
         * t["REG ratio of future money moved to historical money moved"]
@@ -506,22 +506,29 @@ Distribution reg_estimate_direct(Table& t)
 Distribution reg_estimate_ff(Table& t)
 {
     t["REG weighted money raised ff"] = 
-        t["REG money raised for veg advocacy"] * t["veg ff posterior"]
-        + t["REG money raised for AI safety"] * t["AI safety posterior"]
-        + t["REG money raised for TVS"] * t["TVS posterior"]
-        + t["REG money raised for ACE"] * t["ACE ff estimate mean"];
+        CI((t["REG money raised for veg advocacy"] * t["veg ff posterior"]).mean()
+           + (t["REG money raised for AI safety"] * t["AI safety posterior"]).mean()
+           + (t["REG money raised for ACE"] * t["ACE ff estimate"]).mean());
 
     return t["REG weighted money raised ff"]
         * t["REG ratio of future money moved to historical money moved"]
         * t["REG budget ($K)"].reciprocal();
 }
 
+string rfmf_factor(string name)
+{
+    if (name.compare(name.length() - 3, 3, " ff") == 0) {
+        name = name.substr(0, name.length() - 3);
+    }
+    return name + " RFMF factor";
+}
+
 void print_results(Table& t, string name, Distribution prior, Distribution estimate)
 {
     Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
     double posterior = prior.posterior(estimate);
-    if (consider_rfmf && t[name + " RFMF factor"].type != Type::empty) {
-        posterior *= t[name + " RFMF factor"].p_m;
+    if (consider_rfmf && t[rfmf_factor(name)].type != Type::empty) {
+        posterior *= t[rfmf_factor(name)].p_m;
     }
     t[name + " posterior"] = CI(posterior);
     cout << name << " estimate mean," << estimate.mean() << endl;
@@ -533,9 +540,10 @@ void print_results_no_posterior(Table& t, string name, Distribution estimate)
 {
     Distribution ln = estimate.to_lognorm(); // so p_s is well-defined
     double ev = estimate.mean();
-    if (consider_rfmf && t[name + " RFMF factor"].type != Type::empty) {
-       ev *= t[name + " RFMF factor"].p_m;
+    if (consider_rfmf && t[rfmf_factor(name)].type != Type::empty) {
+        ev *= t[rfmf_factor(name)].p_m;
     }
+    t[name + " estimate"] = CI(ev);
     cout << name << " estimate mean," << ev << endl;
     cout << name << " estimate p_s," << ln.log_stdev() << endl;
 }
@@ -589,6 +597,9 @@ int main(int argc, char *argv[])
         print_results_no_posterior(t, "ACE", ace);
         print_results_no_posterior(t, "ACE ff", ace_ff);
 
+        // ignored by frontend app, but used for REG
+        print_results(t, "speculative animal charities", prior, t["speculative animal charities estimate"]);
+    
         Distribution reg = reg_estimate_direct(t);
         Distribution reg_ff = reg_estimate_ff(t);
         print_results_no_posterior(t, "REG", reg);

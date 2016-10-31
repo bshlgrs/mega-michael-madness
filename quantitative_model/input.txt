@@ -103,7 +103,7 @@ P(AI researchers' values matter),0.3,0.5
 number of AI researchers when AGI created,30000,100000
 values propagation multiplier,1,5
 cost to convince one AI researcher to care about non-human minds ($),5000,50000
-ACE RFMF factor,1,1
+ACE RFMF factor,0.7,0.7
 proportion ACE money moved between effective animal charities,0.7,0.7
 proportion ACE money moved to effective animal charities,0.3,0.3
 ACE budget ($K),150,300
@@ -113,18 +113,13 @@ relative improvement between top animal charities,0.1,0.3
 relative improvement from money moved to effective animal charities,0.9,0.9
 relative improvement between animal interventions,0.2,0.5
 money put into interventions that ACE researches ($K),8000,12000
-proportion of money moved by ACE report,0.01,0.05
+proportion of money moved by ACE report,0.002,0.02
+REG RFMF factor,0.3,0.3
 REG budget ($K),150,200
-REG ratio of future money moved to historical money moved,0.5,1.5
+REG ratio of future money moved to historical money moved,0.5,1.2
 REG money raised for global poverty,439,439
 REG money raised for veg advocacy,123,123
 REG money raised for AI safety,263,263
 REG money raised for speculative animal charities,164,164
 REG money raised for ACE,27,27
-REG money raised for Effective Altruism Foundation,220,220
-REG global poverty posterior,$AMF posterior,$AMF posterior
-REG veg advocacy posterior,$veg posterior,$veg posterior
-REG AI safety posterior,$AI safety posterior,$AI safety posterior
-REG speculative animal charities posterior,$TVS posterior,$TVS posterior
-REG ACE posterior,$ACE posterior,$ACE posterior
-REG Effective Altruism Foundation posterior,$TVS posterior,$TVS posterior
+speculative animal charities estimate,2000,500000

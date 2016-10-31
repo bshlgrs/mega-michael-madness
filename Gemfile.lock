@@ -42,6 +42,3 @@ DEPENDENCIES
   sinatra-contrib
   sinatra-json
   thin
-
-BUNDLED WITH
-   1.12.5
