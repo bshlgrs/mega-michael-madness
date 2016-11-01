@@ -65,7 +65,7 @@ insect suffering prevented by changing values,0.2,0.4
 suffering simulations prevented by changing values,0.2,0.4
 hedonium scenarios caused by changing values,0.01,0.1
 dolorium scenarios prevented by changing values,0.001,0.001
-cage free RFMF factor,0.7,0.7
+cage free RFMF factor,0.000001,0.000001
 cage-free total expenditures ($M),2,3
 years until cage-free would have happened anyway,5,10
 millions of cages prevented,100,150

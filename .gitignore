@@ -2,3 +2,5 @@
 */*.o
 */.DS_Store
 */a.out.dSYM
+quantitative_model/input.txt
+quantitative_model/run-backend
