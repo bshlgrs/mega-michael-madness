@@ -72,7 +72,7 @@ millions of cages prevented,100,150
 proportion of change attributable to campaigns,0.7,1
 cage-free years per cage prevented,1,1
 values spreading effect of cage-free year relative to vegetarian-year,0.01,0.1
-GFI RFMF factor,0.5,0.5
+GFI RFMF factor,0.7,0.7
 factory farming years caused per human year,3,4
 speciesism reduction caused by not eating animals,0.05,0.15
 GFI budget ($K),1600,1700

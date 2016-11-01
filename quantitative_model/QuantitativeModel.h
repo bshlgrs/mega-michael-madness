@@ -13,6 +13,7 @@
 #include <algorithm> /* for min/max */
 #include <cfloat> /* for DBL_MAX */
 #include <cmath>
+#include <cstring>
 #include <fstream>
 #include <functional>
 #include <iostream>
