@@ -348,7 +348,7 @@ Distribution gfi_estimate_direct(Table& t)
         * t["proportion of startup success attributable to GFI"];
 
     t[model_names[2]] =
-        t["factory farming years displaced at restaurants and grocery stores by GFI"];
+        t["millions of factory farming years displaced at restaurants and grocery stores by GFI"] * 1000000;
 
     Distribution to_1k_converter = t["GFI budget ($K)"].reciprocal();
 

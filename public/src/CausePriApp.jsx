@@ -327,13 +327,13 @@ const CausePriApp = React.createClass({
           ["mean revenue of startups GFI supports ($K)",2000,10000],
           ["number of startups GFI can support per year",10,15],
           ["money per person-year spent on animal products",500,800,"[2]"],
-          ["proportion of startup success attributable to GFI",0.01,0.03],
+          ["proportion of startup success attributable to GFI",0.03,0.1],
       ])}
 
 
       <p>GFI value from corporate engagement</p>
       {this.simpleDistributionsTable([
-          ["factory farming years displaced at restaurants and grocery stores by GFI",1,10,"TODO: figure out actual numbers for this"],
+          ["millions of factory farming years displaced at restaurants and grocery stores by GFI",100,200,"Assumes this operates fairly similarly to cage-free campaigns. I didn't put much thought into this"],
       ])}
 
       <Table>

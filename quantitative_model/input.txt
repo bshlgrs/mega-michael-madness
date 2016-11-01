@@ -65,7 +65,7 @@ insect suffering prevented by changing values,0.2,0.4
 suffering simulations prevented by changing values,0.2,0.4
 hedonium scenarios caused by changing values,0.01,0.1
 dolorium scenarios prevented by changing values,0.001,0.001
-cage free RFMF factor,0.000001,0.000001
+cage free RFMF factor,0.7,0.7
 cage-free total expenditures ($M),2,3
 years until cage-free would have happened anyway,5,10
 millions of cages prevented,100,150
@@ -81,8 +81,8 @@ years cultured meat accelerated by GFI per year,0.01,0.1
 mean revenue of startups GFI supports ($K),2000,10000
 number of startups GFI can support per year,10,15
 money per person-year spent on animal products,500,800
-proportion of startup success attributable to GFI,0.01,0.03
-factory farming years displaced at restaurants and grocery stores by GFI,1,10
+proportion of startup success attributable to GFI,0.03,0.1
+millions of factory farming years displaced at restaurants and grocery stores by GFI,100,200
 Model 1 weight,0.5,0.5
 Model 2 weight,0.5,0.5
 Model 3 weight,0,0
